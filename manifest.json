@@ -1,7 +1,7 @@
 {
   "name": "Peakle — 높이 맞추기 배틀",
   "short_name": "Peakle",
-  "description": "산·건물·명소 4,000개의 높이를 맞춰라. 1대1 실시간 고도 배틀!",
+  "description": "세계 건축물의 높이를 맞춰라. 1대1 실시간 배틀!",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

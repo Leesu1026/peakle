@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Peakle — 높이 맞추기 배틀</title>
-<meta name="description" content="산, 마천루, 세계의 명소… 4,000개의 높이를 맞춰라. 1대1 실시간 고도 배틀, Peakle.">
-<meta property="og:title" content="Peakle ⛰ 높이 맞추기 배틀">
-<meta property="og:description" content="산·건물·명소 4,000개의 높이를 맞춰라. 매일 새로운 데일리 챌린지와 1대1 실시간 배틀!">
+<title>Peakle — 세계 건축물 높이 맞추기 배틀</title>
+<meta name="description" content="마천루·다리·성당·경기장… 세계 건축물의 높이를 맞춰라. 1대1 실시간 배틀, Peakle.">
+<meta property="og:title" content="Peakle 🏙 세계 건축물 높이 맞추기 배틀">
+<meta property="og:description" content="마천루·다리·성당·경기장의 높이를 맞춰라. 매일 새로운 데일리 챌린지와 1대1 실시간 배틀!">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0B1026">
 <meta name="mobile-web-app-capable" content="yes">
@@ -306,7 +306,7 @@ const now = () => Date.now() + serverOffset;
 /* ================= i18n ================= */
 const STR = {
 ko:{
- tag:"산·건물·명소, 세상 모든 높이를 맞춰라", nick:"닉네임 (2~12자)", daily:"📅 데일리 챌린지", battle:"⚔️ 1대1 대결",
+ tag:"세계의 건축물, 그 높이를 맞춰라", nick:"닉네임 (2~12자)", daily:"📅 데일리 챌린지", battle:"⚔️ 1대1 대결",
  practice:"🎯 연습 모드", settings:"⚙️ 설정", quick:"⚡ 빠른 매칭", create:"🏠 방 만들기", join:"입장",
  join_lbl:"코드로 입장", battle_note:"체력 5000으로 시작. 오차가 클수록 큰 데미지! 6라운드부터 데미지 2배, 11라운드부터 3배. 최대 15라운드.",
  matching:"상대를 찾는 중…", matching_desc:"30초 안에 상대가 없으면 연습봇과 대결해요", room_wait:"친구를 기다리는 중…",
@@ -320,13 +320,13 @@ ko:{
  settings_note:"언어를 바꾸면 산 이름도 해당 언어의 공식 표기로 나와요. 공식 표기가 없는 산은 원어 그대로 표시됩니다.",
  nick_short:"닉네임은 2자 이상이어야 해요", nick_bad:"사용할 수 없는 닉네임이에요", no_room:"방을 찾을 수 없어요",
  room_full:"방이 가득 찼어요", practice_end:"연습 종료", rounds_played:"라운드 진행", avg_pts:"평균 점수",
- mts:"개의 산·건물·명소 수록", err:"오차", guess_ph:"높이 입력", next_in:"곧 다음 라운드…", start_in:"게임 시작!",
+ mts:"개의 세계 건축물 수록", err:"오차", guess_ph:"높이 입력", next_in:"곧 다음 라운드…", start_in:"게임 시작!",
  share_daily:(n,s,e)=>`Peakle 데일리 #${n}\n⛰️ ${s.toLocaleString()} / 5,000점\n${e}\n`,
  share_battle:(w,me,foe)=>`Peakle ⚔️ 1대1 배틀 ${w}\n${me} vs ${foe}\n`,
  version_err:"상대와 게임 버전이 달라요. 새로고침 해주세요!",
 },
 en:{
- tag:"Guess the height of anything. Battle the world.", nick:"Nickname (2–12 chars)", daily:"📅 Daily Challenge",
+ tag:"Guess the height of world landmarks. Battle everyone.", nick:"Nickname (2–12 chars)", daily:"📅 Daily Challenge",
  battle:"⚔️ 1v1 Battle", practice:"🎯 Practice", settings:"⚙️ Settings", quick:"⚡ Quick Match",
  create:"🏠 Create Room", join:"Join", join_lbl:"Join with code",
  battle_note:"Start with 5000 HP. Bigger error = bigger damage! Damage ×2 from round 6, ×3 from round 11. Max 15 rounds.",
@@ -341,7 +341,7 @@ en:{
  settings_note:"Changing language also changes mountain names to their official form in that language. Mountains without one keep their original name.",
  nick_short:"Nickname must be at least 2 characters", nick_bad:"That nickname isn't allowed", no_room:"Room not found",
  room_full:"Room is full", practice_end:"Practice over", rounds_played:"Rounds played", avg_pts:"Avg points",
- mts:"things to guess", err:"error", guess_ph:"Enter height", next_in:"Next round soon…", start_in:"Game start!",
+ mts:"world landmarks", err:"error", guess_ph:"Enter height", next_in:"Next round soon…", start_in:"Game start!",
  share_daily:(n,s,e)=>`Peakle Daily #${n}\n⛰️ ${s.toLocaleString()} / 5,000 pts\n${e}\n`,
  share_battle:(w,me,foe)=>`Peakle ⚔️ 1v1 Battle — ${w}\n${me} vs ${foe}\n`,
  version_err:"Game version mismatch with opponent. Please refresh!",
@@ -371,8 +371,8 @@ $("nick").value = localStorage.getItem("pk_nick") || "";
 function flagURL(iso){ return "https://flagcdn.com/w160/"+iso.toLowerCase()+".png"; }
 function mtName(m){ return (L==="ko" && m[3]) ? m[3] : m[0]; }
 
-/* ===== 산 일러스트 생성기 =====
-   산 이름+국가로 시드를 만들어 항상 같은 그림이 나오되,
+/* ===== 건축물 일러스트 생성기 (사진 없을 때 폴백) =====
+   이름+국가로 시드를 만들어 항상 같은 그림이 나오되,
    '높이'는 시드에 넣지 않아 그림이 정답 힌트가 되지 않음 */
 function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
 const PALETTES=[
@@ -396,7 +396,7 @@ function mountainArt(m){
   s+=`<circle cx="${ox}" cy="${oy}" r="${orr*2.1}" fill="${P.orb}" opacity=".14"/>`;
   s+=`<circle cx="${ox}" cy="${oy}" r="${orr}" fill="${P.orb}" opacity=".95"/>`;
 
-  if(cat===1){ /* ===== 건물·타워: 도시 스카이라인 ===== */
+  if(cat===1||cat===2){ /* ===== 건물·타워: 도시 스카이라인 ===== */
     for(let l=0;l<2;l++){
       const base=H, col=P.ridge[l+1], n=4+Math.floor(rnd()*3);
       for(let i=0;i<n;i++){
@@ -416,7 +416,7 @@ function mountainArt(m){
     s+=`<rect x="${sx-1.2}" y="${H-sh-22}" width="2.4" height="24" fill="${P.ridge[2]}"/>`;
     s+=`<circle cx="${sx}" cy="${H-sh-23}" r="2.6" fill="${P.night?"#FF6E5F":P.orb}"/>`;
   }
-  else if(cat===2){ /* ===== 구조물·기념물 ===== */
+  else{ /* ===== 그 외: 기념물 실루엣 ===== */
     // 지평선 + 잔디/광장
     s+=`<rect x="0" y="${H-40}" width="${W}" height="40" fill="${P.ridge[2]}"/>`;
     s+=`<ellipse cx="${W/2}" cy="${H-40}" rx="120" ry="8" fill="${P.ridge[1]}" opacity=".6"/>`;
@@ -436,46 +436,10 @@ function mountainArt(m){
       s+=`<circle cx="${cx}" cy="${gy-138}" r="4" fill="${hi}"/>`;
     }
   }
-  else if(cat===3){ /* ===== 폭포 ===== */
-    const fx=W*.38+rnd()*W*.24, fw=26+rnd()*20;
-    // 양쪽 절벽
-    s+=`<path d="M0,${H} L0,70 L${fx-fw-14},${58+rnd()*20} L${fx-fw},74 L${fx-fw},${H} Z" fill="${P.ridge[1]}"/>`;
-    s+=`<path d="M${W},${H} L${W},64 L${fx+fw+16},${54+rnd()*20} L${fx+fw},72 L${fx+fw},${H} Z" fill="${P.ridge[0]}"/>`;
-    s+=`<path d="M0,${H} L0,140 L${fx-fw-30},128 L${fx-fw-8},150 L${fx-fw-8},${H} Z" fill="${P.ridge[2]}"/>`;
-    // 물줄기
-    s+=`<rect x="${fx-fw}" y="72" width="${fw*2}" height="${H-72}" fill="#DCEFF7" opacity=".92"/>`;
-    for(let i=0;i<5;i++)s+=`<rect x="${fx-fw+4+rnd()*(fw*2-8)}" y="76" width="2.5" height="${H-84}" fill="#FFFFFF" opacity="${.35+rnd()*.4}"/>`;
-    // 물안개
-    s+=`<ellipse cx="${fx}" cy="${H-8}" rx="${fw*2.6}" ry="16" fill="#FFFFFF" opacity=".38"/>`;
-    s+=`<ellipse cx="${fx-fw}" cy="${H-16}" rx="${fw}" ry="9" fill="#FFFFFF" opacity=".28"/>`;
-  }
-  else{ /* ===== 산 (기본) ===== */
-    const snow=rnd()<.55;
-    for(let l=0;l<3;l++){
-      const base=104+l*34, amp=(46-l*10), n=5+Math.floor(rnd()*3);
-      let pts=[[0,base-rnd()*amp*.5]];
-      for(let i=1;i<=n;i++){
-        const x=W*i/n + (rnd()-.5)*(W/n)*.4;
-        const y=base-(.25+rnd()*.75)*amp;
-        pts.push([Math.min(W,x),y]);
-        if(i<n)pts.push([Math.min(W,x+(W/n)*.5*(0.4+rnd()*.5)), base-rnd()*amp*.22]);
-      }
-      let d=`M0,${H} L${pts.map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" L")} L${W},${H} Z`;
-      s+=`<path d="${d}" fill="${P.ridge[l]}"/>`;
-      if(l===0&&snow){
-        pts.forEach(p=>{ if(p[1]<base-amp*.62)
-          s+=`<path d="M${p[0]-8},${p[1]+9} L${p[0]},${p[1]} L${p[0]+8},${p[1]+9} L${p[0]+3},${p[1]+7} L${p[0]-3},${p[1]+8} Z" fill="#EDF4F8" opacity=".9"/>`; });
-      }
-    }
-    if(!P.night&&rnd()<.5){
-      for(let i=0;i<2+Math.floor(rnd()*2);i++){const bx=60+rnd()*280,by=34+rnd()*50;
-        s+=`<path d="M${bx-5},${by} Q${bx},${by-4} ${bx},${by} Q${bx},${by-4} ${bx+5},${by}" stroke="#1A2233" stroke-width="1.4" fill="none" opacity=".7"/>`;}
-    }
-  }
   s+=`</svg>`;
   return s;
 }
-const CATS={0:{ko:"산",en:"Mountain",ic:"🏔"},1:{ko:"건물·타워",en:"Building / Tower",ic:"🏢"},2:{ko:"구조물·기념물",en:"Structure / Monument",ic:"🗽"},3:{ko:"폭포",en:"Waterfall",ic:"💧"}};
+const CATS={1:{ko:"건물",en:"Building",ic:"🏢"},2:{ko:"타워",en:"Tower",ic:"🗼"},3:{ko:"다리",en:"Bridge",ic:"🌉"},4:{ko:"기념물·동상",en:"Monument / Statue",ic:"🗽"},5:{ko:"종교 건축",en:"Religious",ic:"⛪"},6:{ko:"경기장·구조물",en:"Stadium / Structure",ic:"🏟"}};
 function toUnit(mm){ return unit==="m" ? mm : Math.round(mm*3.28084); }
 function fromUnit(v){ return unit==="m" ? v : Math.round(v/3.28084); }
 function fmtH(mm){ return toUnit(mm).toLocaleString() + " " + unit; }
@@ -498,12 +462,13 @@ function pickSeeded(seed,count){
 const dailyNum = () => Math.floor((Date.now()-LAUNCH_UTC)/86400000)+1;
 
 /* 카테고리별 인덱스 (산/건물/구조물/폭포 균등 출제용) */
-const CATIDX=[[],[],[],[]];
-MT.forEach((m,i)=>CATIDX[m[4]||0].push(i));
+const CATIDX={};
+MT.forEach((m,i)=>{const c=m[4]||0;(CATIDX[c]=CATIDX[c]||[]).push(i);});
+const CATKEYS=Object.keys(CATIDX);
 function pickBalanced(rnd,count){
   const out=new Set();
   while(out.size<count){
-    const arr=CATIDX[Math.floor(rnd()*4)];
+    const arr=CATIDX[CATKEYS[Math.floor(rnd()*CATKEYS.length)]];
     out.add(arr[Math.floor(rnd()*arr.length)]);
   }
   return [...out];
