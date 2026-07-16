@@ -476,22 +476,38 @@ function pickBalanced(rnd,count){
 const pickBalancedSeeded=(seed,count)=>pickBalanced(mulberry32(seed),count);
 const pickOneBalanced=()=>pickBalanced(Math.random,1)[0];
 
-/* ===== Wikipedia 실사진 로더 (없으면 생성 일러스트 유지) ===== */
+/* ===== Wikipedia 실사진 로더 v2 =====
+   1차: 문서 제목 직접 조회(pageimages) → 2차: 검색으로 문서 찾아 조회
+   썸네일 크기를 API에 직접 요청하므로 404 없음 */
 const photoCache={};
 let photoToken=0;
+const WAPI="https://en.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=1000";
+function pickThumb(j){
+  try{
+    const pages=j.query&&j.query.pages;
+    if(!pages||!pages.length) return null;
+    for(const p of pages) if(p.thumbnail&&p.thumbnail.source)
+      return {src:p.thumbnail.source, page:"https://en.wikipedia.org/wiki/"+encodeURIComponent((p.title||"").replace(/ /g,"_"))};
+  }catch(e){}
+  return null;
+}
+async function wikiPhoto(title){
+  try{
+    let r=await fetch(WAPI+"&titles="+encodeURIComponent(title));
+    if(r.ok){ const hit=pickThumb(await r.json()); if(hit) return hit; }
+  }catch(e){}
+  try{ // 제목이 정확히 일치하지 않으면 검색으로 찾기
+    let r=await fetch(WAPI+"&generator=search&gsrlimit=1&gsrnamespace=0&gsrsearch="+encodeURIComponent(title));
+    if(r.ok){ const hit=pickThumb(await r.json()); if(hit) return hit; }
+  }catch(e){}
+  return null;
+}
 async function loadPhoto(m,token){
   const key=m[0]+"|"+m[1];
-  if(!(key in photoCache)){
+  if(photoCache[key]===undefined){
     photoCache[key]=null;
-    try{
-      const title=m[0].replace(/\s*\(.*?\)\s*/g," ").trim();
-      const r=await fetch("https://en.wikipedia.org/api/rest_v1/page/summary/"+encodeURIComponent(title),{headers:{"Accept":"application/json"}});
-      if(r.ok){
-        const j=await r.json();
-        if(j.type==="standard"&&j.thumbnail&&j.thumbnail.source)
-          photoCache[key]={src:j.thumbnail.source.replace(/\/(\d+)px-/,"/900px-"),page:(j.content_urls&&j.content_urls.desktop)?j.content_urls.desktop.page:null};
-      }
-    }catch(e){}
+    const title=m[0].replace(/\s*\(.*?\)\s*/g," ").trim();
+    photoCache[key]=await wikiPhoto(title);
   }
   if(token!==photoToken) return;           // 이미 다음 라운드로 넘어감
   const p=photoCache[key]; if(!p) return;  // 사진 없음 → 일러스트 유지
