@@ -26,7 +26,7 @@ body{
 }
 #stars{position:fixed;inset:0;pointer-events:none;z-index:0}
 #peaks{position:fixed;left:0;right:0;bottom:0;pointer-events:none;z-index:0;opacity:.9}
-#app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:20px 18px 150px;min-height:100dvh}
+#app{position:relative;z-index:1;max-width:560px;margin:0 auto;padding:20px 18px 150px;min-height:100dvh}
 section{display:none;animation:fade .28s ease}
 section.on{display:block}
 @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -74,12 +74,14 @@ input:focus{border-color:var(--glow)}
 .mult.x2{background:#FFD166}.mult.x3{background:var(--bad);color:#fff}
 
 .mt{
-  text-align:center;padding:26px 12px 22px;margin:10px 0;
-  background:var(--card);border:1px solid var(--line);border-radius:20px;
+  margin:10px 0;background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;
 }
-.mtflag{font-size:44px;line-height:1}
-.mtname{font-size:26px;font-weight:900;margin-top:8px;word-break:keep-all;user-select:none}
-.mtsub{font-size:13px;color:var(--dim);margin-top:4px}
+.mtimg{width:100%;aspect-ratio:16/9;display:block;background:#101832}
+.mtimg svg{width:100%;height:100%;display:block}
+.mtmeta{display:flex;align-items:center;justify-content:center;gap:12px;padding:14px 14px 16px;text-align:left}
+.mtflagimg{width:42px;height:auto;border-radius:5px;box-shadow:0 1px 5px rgba(0,0,0,.5);flex:none;border:1px solid rgba(255,255,255,.15)}
+.mtname{font-size:26px;font-weight:900;word-break:keep-all;user-select:none;line-height:1.15}
+.mtsub{font-size:13px;color:var(--dim);margin-top:3px}
 .timer{height:8px;border-radius:6px;background:rgba(0,0,0,.35);overflow:hidden;margin:12px 0;border:1px solid var(--line)}
 .timerfill{height:100%;background:linear-gradient(90deg,var(--ice),var(--glow));width:100%}
 .guessrow{display:flex;gap:8px}
@@ -186,9 +188,14 @@ select option{color:#000}
     <div class="roundtxt" id="scoretxt" style="color:var(--glow2)"></div>
   </div>
   <div class="mt">
-    <div class="mtflag" id="mtflag">⛰️</div>
-    <div class="mtname" id="mtname">—</div>
-    <div class="mtsub" id="mtsub"></div>
+    <div class="mtimg" id="mtimg"></div>
+    <div class="mtmeta">
+      <img class="mtflagimg" id="mtflag" alt="flag">
+      <div>
+        <div class="mtname" id="mtname">—</div>
+        <div class="mtsub" id="mtsub"></div>
+      </div>
+    </div>
   </div>
   <div class="timer"><div class="timerfill" id="timerfill"></div></div>
   <div id="guessarea">
@@ -351,8 +358,57 @@ function nickOk(n){
 }
 $("nick").value = localStorage.getItem("pk_nick") || "";
 
-function flagEmoji(iso){ return iso.toUpperCase().replace(/./g,c=>String.fromCodePoint(127397+c.charCodeAt(0))); }
+function flagURL(iso){ return "https://flagcdn.com/w160/"+iso.toLowerCase()+".png"; }
 function mtName(m){ return (L==="ko" && m[3]) ? m[3] : m[0]; }
+
+/* ===== 산 일러스트 생성기 =====
+   산 이름+국가로 시드를 만들어 항상 같은 그림이 나오되,
+   '높이'는 시드에 넣지 않아 그림이 정답 힌트가 되지 않음 */
+function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+const PALETTES=[
+ {sky:["#0B1026","#2A3B66"],ridge:["#4A5B8C","#2E3C68","#1A2547"],orb:"#E8F0F7",night:1},          // 밤
+ {sky:["#1B2A4A","#FF8E6E"],ridge:["#6E5A7E","#43395F","#241F40"],orb:"#FFD9A0"},                   // 새벽
+ {sky:["#7FB8D8","#DCEFF7"],ridge:["#5E7FA6","#3E5C82","#27405E"],orb:"#FFF4D6"},                   // 낮
+ {sky:["#2E2440","#FF6E5F"],ridge:["#7A4A5E","#4E3048","#2A1B33"],orb:"#FFC48A"},                   // 노을
+ {sky:["#22333F","#87A8A4"],ridge:["#57707A","#3A4F58","#232F36"],orb:"#E5EEEA"},                   // 안개
+];
+function mountainArt(m){
+  const rnd=mulberry32(hashStr(m[0]+"|"+m[1]));
+  const P=PALETTES[Math.floor(rnd()*PALETTES.length)];
+  const W=400,H=225,gid="g"+Math.floor(rnd()*1e6);
+  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">`;
+  s+=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${P.sky[0]}"/><stop offset="1" stop-color="${P.sky[1]}"/></linearGradient></defs>`;
+  s+=`<rect width="${W}" height="${H}" fill="url(#${gid})"/>`;
+  if(P.night){for(let i=0;i<26;i++)s+=`<circle cx="${rnd()*W}" cy="${rnd()*H*.5}" r="${.5+rnd()}" fill="#F2F6F9" opacity="${.3+rnd()*.6}"/>`;}
+  const ox=40+rnd()*(W-80),oy=22+rnd()*55,orr=P.night?13+rnd()*5:16+rnd()*8;
+  s+=`<circle cx="${ox}" cy="${oy}" r="${orr*2.1}" fill="${P.orb}" opacity=".14"/>`;
+  s+=`<circle cx="${ox}" cy="${oy}" r="${orr}" fill="${P.orb}" opacity=".95"/>`;
+  const snow=rnd()<.55;
+  for(let l=0;l<3;l++){
+    const base=104+l*34, amp=(46-l*10), n=5+Math.floor(rnd()*3);
+    let pts=[[0,base-rnd()*amp*.5]], peaks=[];
+    for(let i=1;i<=n;i++){
+      const x=W*i/n + (rnd()-.5)*(W/n)*.4;
+      const y=base-(.25+rnd()*.75)*amp;
+      pts.push([Math.min(W,x),y]);
+      // 지그재그 골짜기
+      if(i<n)pts.push([Math.min(W,x+(W/n)*.5*(0.4+rnd()*.5)), base-rnd()*amp*.22]);
+    }
+    let d=`M0,${H} L${pts.map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" L")} L${W},${H} Z`;
+    s+=`<path d="${d}" fill="${P.ridge[l]}"/>`;
+    if(l===0&&snow){ // 뒤쪽 능선 봉우리에만 만년설
+      pts.forEach(p=>{ if(p[1]<base-amp*.62)
+        s+=`<path d="M${p[0]-8},${p[1]+9} L${p[0]},${p[1]} L${p[0]+8},${p[1]+9} L${p[0]+3},${p[1]+7} L${p[0]-3},${p[1]+8} Z" fill="#EDF4F8" opacity=".9"/>`; });
+    }
+  }
+  if(!P.night&&rnd()<.5){ // 새 두어 마리
+    for(let i=0;i<2+Math.floor(rnd()*2);i++){const bx=60+rnd()*280,by=34+rnd()*50;
+      s+=`<path d="M${bx-5},${by} Q${bx},${by-4} ${bx},${by} Q${bx},${by-4} ${bx+5},${by}" stroke="#1A2233" stroke-width="1.4" fill="none" opacity=".7"/>`;}
+  }
+  s+=`</svg>`;
+  return s;
+}
 function toUnit(mm){ return unit==="m" ? mm : Math.round(mm*3.28084); }
 function fromUnit(v){ return unit==="m" ? v : Math.round(v/3.28084); }
 function fmtH(mm){ return toUnit(mm).toLocaleString() + " " + unit; }
@@ -434,7 +490,8 @@ function cleanupGame(){
 }
 
 function showMountain(m){
-  $("mtflag").textContent = flagEmoji(m[1]);
+  $("mtimg").innerHTML = mountainArt(m);
+  $("mtflag").src = flagURL(m[1]);
   $("mtname").textContent = mtName(m);
   $("mtsub").textContent  = (L==="ko"&&m[3]) ? m[0] : "";
   $("guess").value=""; $("guess").disabled=false; $("b-submit").disabled=false;
