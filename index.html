@@ -84,8 +84,10 @@ input:focus{border-color:var(--glow)}
 .mt{
   margin:10px 0;background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;
 }
-.mtimg{width:100%;aspect-ratio:16/9;display:block;background:#101832}
+.mtimg{width:100%;aspect-ratio:16/9;display:block;background:#101832;position:relative;overflow:hidden}
 .mtimg svg{width:100%;height:100%;display:block}
+.mtimg img.photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.mtcredit{position:absolute;right:6px;bottom:5px;font-size:10px;color:rgba(255,255,255,.85);background:rgba(0,0,0,.45);padding:2px 7px;border-radius:8px;text-decoration:none;z-index:2}
 .mtmeta{display:flex;align-items:center;justify-content:center;gap:12px;padding:14px 14px 16px;text-align:left}
 .mtflagimg{width:42px;height:auto;border-radius:5px;box-shadow:0 1px 5px rgba(0,0,0,.5);flex:none;border:1px solid rgba(255,255,255,.15)}
 .mtname{font-size:26px;font-weight:900;word-break:keep-all;user-select:none;line-height:1.15}
@@ -495,6 +497,51 @@ function pickSeeded(seed,count){
 }
 const dailyNum = () => Math.floor((Date.now()-LAUNCH_UTC)/86400000)+1;
 
+/* 카테고리별 인덱스 (산/건물/구조물/폭포 균등 출제용) */
+const CATIDX=[[],[],[],[]];
+MT.forEach((m,i)=>CATIDX[m[4]||0].push(i));
+function pickBalanced(rnd,count){
+  const out=new Set();
+  while(out.size<count){
+    const arr=CATIDX[Math.floor(rnd()*4)];
+    out.add(arr[Math.floor(rnd()*arr.length)]);
+  }
+  return [...out];
+}
+const pickBalancedSeeded=(seed,count)=>pickBalanced(mulberry32(seed),count);
+const pickOneBalanced=()=>pickBalanced(Math.random,1)[0];
+
+/* ===== Wikipedia 실사진 로더 (없으면 생성 일러스트 유지) ===== */
+const photoCache={};
+let photoToken=0;
+async function loadPhoto(m,token){
+  const key=m[0]+"|"+m[1];
+  if(!(key in photoCache)){
+    photoCache[key]=null;
+    try{
+      const title=m[0].replace(/\s*\(.*?\)\s*/g," ").trim();
+      const r=await fetch("https://en.wikipedia.org/api/rest_v1/page/summary/"+encodeURIComponent(title),{headers:{"Accept":"application/json"}});
+      if(r.ok){
+        const j=await r.json();
+        if(j.type==="standard"&&j.thumbnail&&j.thumbnail.source)
+          photoCache[key]={src:j.thumbnail.source.replace(/\/(\d+)px-/,"/900px-"),page:(j.content_urls&&j.content_urls.desktop)?j.content_urls.desktop.page:null};
+      }
+    }catch(e){}
+  }
+  if(token!==photoToken) return;           // 이미 다음 라운드로 넘어감
+  const p=photoCache[key]; if(!p) return;  // 사진 없음 → 일러스트 유지
+  const img=new Image();
+  img.onload=()=>{ if(token!==photoToken) return;
+    img.className="photo"; img.draggable=false;
+    $("mtimg").appendChild(img);
+    const a=document.createElement("a");
+    a.className="mtcredit"; a.textContent=(L==="ko"?"사진: Wikipedia":"Photo: Wikipedia");
+    if(p.page){a.href=p.page;a.target="_blank";a.rel="noopener";}
+    $("mtimg").appendChild(a);
+  };
+  img.src=p.src;
+}
+
 /* ================= 효과음 (WebAudio 합성) ================= */
 let AC;
 function beep(freqs,dur=.16,gain=.12){
@@ -555,9 +602,11 @@ function cleanupGame(){
 }
 
 function showMountain(m){
+  photoToken++;
   $("mtimg").innerHTML = mountainArt(m);
   $("mtflag").src = flagURL(m[1]);
   $("mtname").textContent = mtName(m);
+  loadPhoto(m,photoToken);
   const c=CATS[m[4]||0];
   $("mtsub").textContent = c.ic+" "+(L==="ko"?c.ko:c.en) + ((L==="ko"&&m[3]) ? " · "+m[0] : "");
   $("guess").value=""; $("guess").disabled=false; $("b-submit").disabled=false;
@@ -597,14 +646,14 @@ function startSolo(mode){
     if(saved){ showDailyResult(JSON.parse(saved),dn); return; }
   }
   G={mode, fb:false, round:1, pts:[], guesses:[],
-     mts: mode==="daily" ? pickSeeded(dn*7919+13,5) : null,
+     mts: mode==="daily" ? pickBalancedSeeded(dn*7919+13,5) : null,
      total: mode==="daily" ? 5 : Infinity };
   $("hparea").style.display="none"; $("multbadge").style.display="none";
   $("b-quitgame").style.display = mode==="practice" ? "block" : "none";
   screen("game"); soloRound();
 }
 function soloRound(){
-  const idx = G.mode==="daily" ? G.mts[G.round-1] : Math.floor(Math.random()*MT.length);
+  const idx = G.mode==="daily" ? G.mts[G.round-1] : pickOneBalanced();
   G.cur=idx;
   const m=MT[idx];
   $("roundtxt").textContent = t("round")+" "+G.round+(G.mode==="daily"?" / 5":"");
@@ -671,7 +720,7 @@ function startBotGame(){
   const myNick=localStorage.getItem("pk_nick");
   const foe=BOTNAMES[Math.floor(Math.random()*BOTNAMES.length)];
   G={mode:"bot",fb:false,round:1,myHP:5000,foeHP:5000,foeNick:foe,
-     mts:pickSeeded(Math.floor(Math.random()*1e9),15)};
+     mts:pickBalancedSeeded(Math.floor(Math.random()*1e9),15)};
   battleUIBase(myNick,foe); screen("game"); botRound();
 }
 function botRound(){
@@ -769,7 +818,7 @@ async function quickMatch(){
 async function createRoom(roomId,nick,quick){
   await set(ref(db,"rooms/"+roomId),{
     created:now(), host:uid, ver:window.MOUNTAINS_VERSION, quick:!!quick,
-    mts:pickSeeded(Math.floor(Math.random()*1e9),15),
+    mts:pickBalancedSeeded(Math.floor(Math.random()*1e9),15),
     players:{[uid]:{nick,hp:5000}},
     state:{phase:"lobby",round:0}
   });
