@@ -1,0 +1,16 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "queue": {
+      ".read": true,
+      "$uid": { ".write": true }
+    },
+    "invites": {
+      "$uid": { ".read": true, ".write": true }
+    },
+    "rooms": {
+      "$roomId": { ".read": true, ".write": true }
+    }
+  }
+}
