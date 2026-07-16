@@ -3,10 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Peakle — 산 높이 맞추기 배틀</title>
-<meta name="description" content="전 세계 3,800개 산의 높이를 맞춰라. 1대1 실시간 고도 배틀, Peakle.">
-<meta property="og:title" content="Peakle ⛰ 산 높이 맞추기 배틀">
-<meta property="og:description" content="전 세계 3,800개 산의 높이를 맞춰라. 매일 새로운 데일리 챌린지와 1대1 실시간 배틀!">
+<title>Peakle — 높이 맞추기 배틀</title>
+<meta name="description" content="산, 마천루, 세계의 명소… 4,000개의 높이를 맞춰라. 1대1 실시간 고도 배틀, Peakle.">
+<meta property="og:title" content="Peakle ⛰ 높이 맞추기 배틀">
+<meta property="og:description" content="산·건물·명소 4,000개의 높이를 맞춰라. 매일 새로운 데일리 챌린지와 1대1 실시간 배틀!">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0B1026">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
@@ -36,7 +43,8 @@ section.on{display:block}
 .logo .pk{color:var(--glow)}
 .tag{color:var(--dim);text-align:center;font-size:14px;margin-bottom:26px}
 .top{display:flex;align-items:center;gap:10px;margin-bottom:14px}
-.back{background:none;border:1px solid var(--line);color:var(--ice);border-radius:10px;padding:7px 12px;font-size:14px;cursor:pointer;font-family:inherit}
+.back{background:rgba(191,227,238,.16);border:1.5px solid rgba(191,227,238,.55);color:#fff;border-radius:12px;padding:9px 16px;font-size:17px;font-weight:900;cursor:pointer;font-family:inherit;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.back:active{transform:scale(.95)}
 .h1{font-size:20px;font-weight:700}
 
 .field{margin:14px 0}
@@ -296,7 +304,7 @@ const now = () => Date.now() + serverOffset;
 /* ================= i18n ================= */
 const STR = {
 ko:{
- tag:"전 세계 산 높이 맞추기 배틀", nick:"닉네임 (2~12자)", daily:"📅 데일리 챌린지", battle:"⚔️ 1대1 대결",
+ tag:"산·건물·명소, 세상 모든 높이를 맞춰라", nick:"닉네임 (2~12자)", daily:"📅 데일리 챌린지", battle:"⚔️ 1대1 대결",
  practice:"🎯 연습 모드", settings:"⚙️ 설정", quick:"⚡ 빠른 매칭", create:"🏠 방 만들기", join:"입장",
  join_lbl:"코드로 입장", battle_note:"체력 5000으로 시작. 오차가 클수록 큰 데미지! 6라운드부터 데미지 2배, 11라운드부터 3배. 최대 15라운드.",
  matching:"상대를 찾는 중…", matching_desc:"30초 안에 상대가 없으면 연습봇과 대결해요", room_wait:"친구를 기다리는 중…",
@@ -310,13 +318,13 @@ ko:{
  settings_note:"언어를 바꾸면 산 이름도 해당 언어의 공식 표기로 나와요. 공식 표기가 없는 산은 원어 그대로 표시됩니다.",
  nick_short:"닉네임은 2자 이상이어야 해요", nick_bad:"사용할 수 없는 닉네임이에요", no_room:"방을 찾을 수 없어요",
  room_full:"방이 가득 찼어요", practice_end:"연습 종료", rounds_played:"라운드 진행", avg_pts:"평균 점수",
- mts:"개의 산 수록", err:"오차", guess_ph:"높이 입력", next_in:"곧 다음 라운드…", start_in:"게임 시작!",
+ mts:"개의 산·건물·명소 수록", err:"오차", guess_ph:"높이 입력", next_in:"곧 다음 라운드…", start_in:"게임 시작!",
  share_daily:(n,s,e)=>`Peakle 데일리 #${n}\n⛰️ ${s.toLocaleString()} / 5,000점\n${e}\n`,
  share_battle:(w,me,foe)=>`Peakle ⚔️ 1대1 배틀 ${w}\n${me} vs ${foe}\n`,
  version_err:"상대와 게임 버전이 달라요. 새로고침 해주세요!",
 },
 en:{
- tag:"Guess mountain heights. Battle the world.", nick:"Nickname (2–12 chars)", daily:"📅 Daily Challenge",
+ tag:"Guess the height of anything. Battle the world.", nick:"Nickname (2–12 chars)", daily:"📅 Daily Challenge",
  battle:"⚔️ 1v1 Battle", practice:"🎯 Practice", settings:"⚙️ Settings", quick:"⚡ Quick Match",
  create:"🏠 Create Room", join:"Join", join_lbl:"Join with code",
  battle_note:"Start with 5000 HP. Bigger error = bigger damage! Damage ×2 from round 6, ×3 from round 11. Max 15 rounds.",
@@ -331,7 +339,7 @@ en:{
  settings_note:"Changing language also changes mountain names to their official form in that language. Mountains without one keep their original name.",
  nick_short:"Nickname must be at least 2 characters", nick_bad:"That nickname isn't allowed", no_room:"Room not found",
  room_full:"Room is full", practice_end:"Practice over", rounds_played:"Rounds played", avg_pts:"Avg points",
- mts:"mountains included", err:"error", guess_ph:"Enter height", next_in:"Next round soon…", start_in:"Game start!",
+ mts:"things to guess", err:"error", guess_ph:"Enter height", next_in:"Next round soon…", start_in:"Game start!",
  share_daily:(n,s,e)=>`Peakle Daily #${n}\n⛰️ ${s.toLocaleString()} / 5,000 pts\n${e}\n`,
  share_battle:(w,me,foe)=>`Peakle ⚔️ 1v1 Battle — ${w}\n${me} vs ${foe}\n`,
  version_err:"Game version mismatch with opponent. Please refresh!",
@@ -373,6 +381,7 @@ const PALETTES=[
  {sky:["#22333F","#87A8A4"],ridge:["#57707A","#3A4F58","#232F36"],orb:"#E5EEEA"},                   // 안개
 ];
 function mountainArt(m){
+  const cat=m[4]||0;
   const rnd=mulberry32(hashStr(m[0]+"|"+m[1]));
   const P=PALETTES[Math.floor(rnd()*PALETTES.length)];
   const W=400,H=225,gid="g"+Math.floor(rnd()*1e6);
@@ -384,31 +393,87 @@ function mountainArt(m){
   const ox=40+rnd()*(W-80),oy=22+rnd()*55,orr=P.night?13+rnd()*5:16+rnd()*8;
   s+=`<circle cx="${ox}" cy="${oy}" r="${orr*2.1}" fill="${P.orb}" opacity=".14"/>`;
   s+=`<circle cx="${ox}" cy="${oy}" r="${orr}" fill="${P.orb}" opacity=".95"/>`;
-  const snow=rnd()<.55;
-  for(let l=0;l<3;l++){
-    const base=104+l*34, amp=(46-l*10), n=5+Math.floor(rnd()*3);
-    let pts=[[0,base-rnd()*amp*.5]], peaks=[];
-    for(let i=1;i<=n;i++){
-      const x=W*i/n + (rnd()-.5)*(W/n)*.4;
-      const y=base-(.25+rnd()*.75)*amp;
-      pts.push([Math.min(W,x),y]);
-      // 지그재그 골짜기
-      if(i<n)pts.push([Math.min(W,x+(W/n)*.5*(0.4+rnd()*.5)), base-rnd()*amp*.22]);
+
+  if(cat===1){ /* ===== 건물·타워: 도시 스카이라인 ===== */
+    for(let l=0;l<2;l++){
+      const base=H, col=P.ridge[l+1], n=4+Math.floor(rnd()*3);
+      for(let i=0;i<n;i++){
+        const bw=34+rnd()*44, bx=(W/n)*i+rnd()*20-10, bh=(l===0?60:95)+rnd()*(l===0?70:95);
+        s+=`<rect x="${bx.toFixed(1)}" y="${(base-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" fill="${col}"/>`;
+        if(rnd()<.4) s+=`<rect x="${(bx+bw*.35).toFixed(1)}" y="${(base-bh-14).toFixed(1)}" width="${(bw*.3).toFixed(1)}" height="14" fill="${col}"/>`;
+        if(l===1){ // 앞줄 건물 창문 불빛
+          const wc=P.night?"#FFD98A":"#E8F0F7", rows=Math.floor(bh/16), cols=Math.floor(bw/12);
+          for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)
+            if(rnd()<(P.night?.45:.25)) s+=`<rect x="${(bx+4+c*12).toFixed(1)}" y="${(base-bh+6+r*16).toFixed(1)}" width="5" height="7" fill="${wc}" opacity=".85"/>`;
+        }
+      }
     }
-    let d=`M0,${H} L${pts.map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" L")} L${W},${H} Z`;
-    s+=`<path d="${d}" fill="${P.ridge[l]}"/>`;
-    if(l===0&&snow){ // 뒤쪽 능선 봉우리에만 만년설
-      pts.forEach(p=>{ if(p[1]<base-amp*.62)
-        s+=`<path d="M${p[0]-8},${p[1]+9} L${p[0]},${p[1]} L${p[0]+8},${p[1]+9} L${p[0]+3},${p[1]+7} L${p[0]-3},${p[1]+8} Z" fill="#EDF4F8" opacity=".9"/>`; });
+    // 시그니처 첨탑 빌딩
+    const sx=110+rnd()*180, sh=150+rnd()*45, swd=26+rnd()*14;
+    s+=`<polygon points="${sx-swd},${H} ${sx-swd},${H-sh*.72} ${sx},${H-sh} ${sx+swd},${H-sh*.72} ${sx+swd},${H}" fill="${P.ridge[2]}"/>`;
+    s+=`<rect x="${sx-1.2}" y="${H-sh-22}" width="2.4" height="24" fill="${P.ridge[2]}"/>`;
+    s+=`<circle cx="${sx}" cy="${H-sh-23}" r="2.6" fill="${P.night?"#FF6E5F":P.orb}"/>`;
+  }
+  else if(cat===2){ /* ===== 구조물·기념물 ===== */
+    // 지평선 + 잔디/광장
+    s+=`<rect x="0" y="${H-40}" width="${W}" height="40" fill="${P.ridge[2]}"/>`;
+    s+=`<ellipse cx="${W/2}" cy="${H-40}" rx="120" ry="8" fill="${P.ridge[1]}" opacity=".6"/>`;
+    const kind=Math.floor(rnd()*3), cx=W/2, gy=H-40, col=P.ridge[2], hi=P.ridge[0];
+    // 받침대
+    s+=`<rect x="${cx-42}" y="${gy-22}" width="84" height="22" fill="${col}"/>`;
+    s+=`<rect x="${cx-30}" y="${gy-34}" width="60" height="12" fill="${hi}"/>`;
+    if(kind===0){ // 오벨리스크/타워형
+      s+=`<polygon points="${cx-14},${gy-34} ${cx-8},${gy-158} ${cx+8},${gy-158} ${cx+14},${gy-34}" fill="${col}"/>`;
+      s+=`<polygon points="${cx-8},${gy-158} ${cx},${gy-176} ${cx+8},${gy-158}" fill="${hi}"/>`;
+    }else if(kind===1){ // 아치형
+      s+=`<path d="M${cx-62},${gy-34} A62,110 0 0 1 ${cx+62},${gy-34} L${cx+40},${gy-34} A40,84 0 0 0 ${cx-40},${gy-34} Z" fill="${col}"/>`;
+    }else{ // 돔·석상형
+      s+=`<rect x="${cx-26}" y="${gy-96}" width="52" height="62" fill="${col}"/>`;
+      s+=`<path d="M${cx-30},${gy-96} A30,30 0 0 1 ${cx+30},${gy-96} Z" fill="${hi}"/>`;
+      s+=`<rect x="${cx-2}" y="${gy-134}" width="4" height="14" fill="${hi}"/>`;
+      s+=`<circle cx="${cx}" cy="${gy-138}" r="4" fill="${hi}"/>`;
     }
   }
-  if(!P.night&&rnd()<.5){ // 새 두어 마리
-    for(let i=0;i<2+Math.floor(rnd()*2);i++){const bx=60+rnd()*280,by=34+rnd()*50;
-      s+=`<path d="M${bx-5},${by} Q${bx},${by-4} ${bx},${by} Q${bx},${by-4} ${bx+5},${by}" stroke="#1A2233" stroke-width="1.4" fill="none" opacity=".7"/>`;}
+  else if(cat===3){ /* ===== 폭포 ===== */
+    const fx=W*.38+rnd()*W*.24, fw=26+rnd()*20;
+    // 양쪽 절벽
+    s+=`<path d="M0,${H} L0,70 L${fx-fw-14},${58+rnd()*20} L${fx-fw},74 L${fx-fw},${H} Z" fill="${P.ridge[1]}"/>`;
+    s+=`<path d="M${W},${H} L${W},64 L${fx+fw+16},${54+rnd()*20} L${fx+fw},72 L${fx+fw},${H} Z" fill="${P.ridge[0]}"/>`;
+    s+=`<path d="M0,${H} L0,140 L${fx-fw-30},128 L${fx-fw-8},150 L${fx-fw-8},${H} Z" fill="${P.ridge[2]}"/>`;
+    // 물줄기
+    s+=`<rect x="${fx-fw}" y="72" width="${fw*2}" height="${H-72}" fill="#DCEFF7" opacity=".92"/>`;
+    for(let i=0;i<5;i++)s+=`<rect x="${fx-fw+4+rnd()*(fw*2-8)}" y="76" width="2.5" height="${H-84}" fill="#FFFFFF" opacity="${.35+rnd()*.4}"/>`;
+    // 물안개
+    s+=`<ellipse cx="${fx}" cy="${H-8}" rx="${fw*2.6}" ry="16" fill="#FFFFFF" opacity=".38"/>`;
+    s+=`<ellipse cx="${fx-fw}" cy="${H-16}" rx="${fw}" ry="9" fill="#FFFFFF" opacity=".28"/>`;
+  }
+  else{ /* ===== 산 (기본) ===== */
+    const snow=rnd()<.55;
+    for(let l=0;l<3;l++){
+      const base=104+l*34, amp=(46-l*10), n=5+Math.floor(rnd()*3);
+      let pts=[[0,base-rnd()*amp*.5]];
+      for(let i=1;i<=n;i++){
+        const x=W*i/n + (rnd()-.5)*(W/n)*.4;
+        const y=base-(.25+rnd()*.75)*amp;
+        pts.push([Math.min(W,x),y]);
+        if(i<n)pts.push([Math.min(W,x+(W/n)*.5*(0.4+rnd()*.5)), base-rnd()*amp*.22]);
+      }
+      let d=`M0,${H} L${pts.map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" L")} L${W},${H} Z`;
+      s+=`<path d="${d}" fill="${P.ridge[l]}"/>`;
+      if(l===0&&snow){
+        pts.forEach(p=>{ if(p[1]<base-amp*.62)
+          s+=`<path d="M${p[0]-8},${p[1]+9} L${p[0]},${p[1]} L${p[0]+8},${p[1]+9} L${p[0]+3},${p[1]+7} L${p[0]-3},${p[1]+8} Z" fill="#EDF4F8" opacity=".9"/>`; });
+      }
+    }
+    if(!P.night&&rnd()<.5){
+      for(let i=0;i<2+Math.floor(rnd()*2);i++){const bx=60+rnd()*280,by=34+rnd()*50;
+        s+=`<path d="M${bx-5},${by} Q${bx},${by-4} ${bx},${by} Q${bx},${by-4} ${bx+5},${by}" stroke="#1A2233" stroke-width="1.4" fill="none" opacity=".7"/>`;}
+    }
   }
   s+=`</svg>`;
   return s;
 }
+const CATS={0:{ko:"산",en:"Mountain",ic:"🏔"},1:{ko:"건물·타워",en:"Building / Tower",ic:"🏢"},2:{ko:"구조물·기념물",en:"Structure / Monument",ic:"🗽"},3:{ko:"폭포",en:"Waterfall",ic:"💧"}};
 function toUnit(mm){ return unit==="m" ? mm : Math.round(mm*3.28084); }
 function fromUnit(v){ return unit==="m" ? v : Math.round(v/3.28084); }
 function fmtH(mm){ return toUnit(mm).toLocaleString() + " " + unit; }
@@ -493,7 +558,8 @@ function showMountain(m){
   $("mtimg").innerHTML = mountainArt(m);
   $("mtflag").src = flagURL(m[1]);
   $("mtname").textContent = mtName(m);
-  $("mtsub").textContent  = (L==="ko"&&m[3]) ? m[0] : "";
+  const c=CATS[m[4]||0];
+  $("mtsub").textContent = c.ic+" "+(L==="ko"?c.ko:c.en) + ((L==="ko"&&m[3]) ? " · "+m[0] : "");
   $("guess").value=""; $("guess").disabled=false; $("b-submit").disabled=false;
   $("waitmsg").textContent="";
   $("guessarea").style.display="block"; $("revealarea").style.display="none";
@@ -895,6 +961,7 @@ $("snd-off").onclick=()=>{sound=false;localStorage.setItem("pk_sound","0");apply
 $("joincode").addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"");});
 
 applyI18n();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>
 </html>

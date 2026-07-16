@@ -1,0 +1,15 @@
+{
+  "name": "Peakle — 높이 맞추기 배틀",
+  "short_name": "Peakle",
+  "description": "산·건물·명소 4,000개의 높이를 맞춰라. 1대1 실시간 고도 배틀!",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0B1026",
+  "theme_color": "#0B1026",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
