@@ -84,9 +84,11 @@ input:focus{border-color:var(--glow)}
 .mt{
   margin:10px 0;background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;
 }
-.mtimg{width:100%;aspect-ratio:16/9;display:block;background:#101832;position:relative;overflow:hidden}
+.mtimg{width:100%;aspect-ratio:16/9;max-height:54vh;display:block;background:#101832;position:relative;overflow:hidden;transition:aspect-ratio .3s ease}
 .mtimg svg{width:100%;height:100%;display:block}
-.mtimg img.photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.mtimg img.photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:1}
+.mtimg img.photo.fit{object-fit:contain}
+.mtimg img.photobg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(20px) brightness(.5);transform:scale(1.15);z-index:0}
 .mtcredit{position:absolute;right:6px;bottom:5px;font-size:10px;color:rgba(255,255,255,.85);background:rgba(0,0,0,.45);padding:2px 7px;border-radius:8px;text-decoration:none;z-index:2}
 .mtmeta{display:flex;align-items:center;justify-content:center;gap:12px;padding:14px 14px 16px;text-align:left}
 .mtflagimg{width:42px;height:auto;border-radius:5px;box-shadow:0 1px 5px rgba(0,0,0,.5);flex:none;border:1px solid rgba(255,255,255,.15)}
@@ -476,29 +478,50 @@ function pickBalanced(rnd,count){
 const pickBalancedSeeded=(seed,count)=>pickBalanced(mulberry32(seed),count);
 const pickOneBalanced=()=>pickBalanced(Math.random,1)[0];
 
-/* ===== Wikipedia 실사진 로더 v2 =====
-   1차: 문서 제목 직접 조회(pageimages) → 2차: 검색으로 문서 찾아 조회
-   썸네일 크기를 API에 직접 요청하므로 404 없음 */
+/* ===== Wikipedia 실사진 로더 v3 =====
+   로고·지도류 이미지 필터링 → Wikidata 대표사진(P18) 폴백 → 검색 폴백 */
 const photoCache={};
 let photoToken=0;
-const WAPI="https://en.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&redirects=1&prop=pageimages&piprop=thumbnail&pithumbsize=1000";
-function pickThumb(j){
+const BADIMG=/logo|icon|seal|flag|map|coat|emblem|crest|wordmark|banner|montage|diagram/i;
+const WAPI="https://en.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&redirects=1&prop=pageimages%7Cpageprops&piprop=thumbnail%7Cname&pithumbsize=1000&ppprop=wikibase_item";
+function parsePages(j){
   try{
     const pages=j.query&&j.query.pages;
     if(!pages||!pages.length) return null;
-    for(const p of pages) if(p.thumbnail&&p.thumbnail.source)
-      return {src:p.thumbnail.source, page:"https://en.wikipedia.org/wiki/"+encodeURIComponent((p.title||"").replace(/ /g,"_"))};
+    for(const p of pages){
+      const page="https://en.wikipedia.org/wiki/"+encodeURIComponent((p.title||"").replace(/ /g,"_"));
+      const qid=p.pageprops&&p.pageprops.wikibase_item;
+      if(p.thumbnail&&p.thumbnail.source&&!(p.pageimage&&BADIMG.test(p.pageimage)))
+        return {src:p.thumbnail.source,page,qid};
+      if(qid) return {src:null,page,qid}; // 대표이미지가 로고 → Wikidata로
+    }
   }catch(e){}
+  return null;
+}
+async function wikidataPhoto(qid){
+  try{
+    const r=await fetch("https://www.wikidata.org/w/api.php?action=wbgetclaims&format=json&origin=*&property=P18&entity="+qid);
+    if(!r.ok) return null;
+    const j=await r.json();
+    const f=j.claims&&j.claims.P18&&j.claims.P18[0]&&j.claims.P18[0].mainsnak.datavalue.value;
+    if(!f||BADIMG.test(f)) return null;
+    return "https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(f.replace(/ /g,"_"))+"?width=1000";
+  }catch(e){ return null; }
+}
+async function resolveHit(hit){
+  if(!hit) return null;
+  if(hit.src) return {src:hit.src,page:hit.page};
+  if(hit.qid){ const s=await wikidataPhoto(hit.qid); if(s) return {src:s,page:hit.page}; }
   return null;
 }
 async function wikiPhoto(title){
   try{
-    let r=await fetch(WAPI+"&titles="+encodeURIComponent(title));
-    if(r.ok){ const hit=pickThumb(await r.json()); if(hit) return hit; }
+    const r=await fetch(WAPI+"&titles="+encodeURIComponent(title));
+    if(r.ok){ const got=await resolveHit(parsePages(await r.json())); if(got) return got; }
   }catch(e){}
-  try{ // 제목이 정확히 일치하지 않으면 검색으로 찾기
-    let r=await fetch(WAPI+"&generator=search&gsrlimit=1&gsrnamespace=0&gsrsearch="+encodeURIComponent(title));
-    if(r.ok){ const hit=pickThumb(await r.json()); if(hit) return hit; }
+  try{ // 제목 불일치 → 검색으로 문서 찾기
+    const r=await fetch(WAPI+"&generator=search&gsrlimit=1&gsrnamespace=0&gsrsearch="+encodeURIComponent(title));
+    if(r.ok){ const got=await resolveHit(parsePages(await r.json())); if(got) return got; }
   }catch(e){}
   return null;
 }
@@ -513,12 +536,23 @@ async function loadPhoto(m,token){
   const p=photoCache[key]; if(!p) return;  // 사진 없음 → 일러스트 유지
   const img=new Image();
   img.onload=()=>{ if(token!==photoToken) return;
-    img.className="photo"; img.draggable=false;
-    $("mtimg").appendChild(img);
+    const box=$("mtimg");
+    const r=img.naturalWidth/Math.max(1,img.naturalHeight);
+    // 사진 비율에 맞춰 프레임 조정 (정사각~16:9 사이)
+    box.style.aspectRatio=Math.max(1.0,Math.min(1.78,r)).toFixed(3);
+    if(r<1.55){ // 세로/정방형 사진: 전체가 보이도록 + 흐린 배경 채움
+      const bg=new Image(); bg.src=p.src; bg.className="photobg"; bg.draggable=false;
+      box.appendChild(bg);
+      img.className="photo fit";
+    } else {
+      img.className="photo";
+    }
+    img.draggable=false;
+    box.appendChild(img);
     const a=document.createElement("a");
     a.className="mtcredit"; a.textContent=(L==="ko"?"사진: Wikipedia":"Photo: Wikipedia");
     if(p.page){a.href=p.page;a.target="_blank";a.rel="noopener";}
-    $("mtimg").appendChild(a);
+    box.appendChild(a);
   };
   img.src=p.src;
 }
@@ -585,6 +619,7 @@ function cleanupGame(){
 function showMountain(m){
   photoToken++;
   $("mtimg").innerHTML = mountainArt(m);
+  $("mtimg").style.aspectRatio="16/9";
   $("mtflag").src = flagURL(m[1]);
   $("mtname").textContent = mtName(m);
   loadPhoto(m,photoToken);
