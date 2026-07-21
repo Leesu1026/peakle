@@ -483,17 +483,18 @@ const pickOneBalanced=()=>pickBalanced(Math.random,1)[0];
 const photoCache={};
 let photoToken=0;
 const BADIMG=/logo|icon|seal|flag|map|coat|emblem|crest|wordmark|banner|montage|diagram/i;
-const WAPI="https://en.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&redirects=1&prop=pageimages%7Cpageprops&piprop=thumbnail%7Cname&pithumbsize=1000&ppprop=wikibase_item";
+const WAPI="https://en.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&redirects=1&prop=pageimages%7Cpageprops&piprop=thumbnail%7Cname&pithumbsize=1000&ppprop=wikibase_item%7Cdisambiguation";
 function parsePages(j){
   try{
     const pages=j.query&&j.query.pages;
     if(!pages||!pages.length) return null;
     for(const p of pages){
+      if(p.pageprops&&p.pageprops.disambiguation!==undefined) continue; // 동음이의 페이지 제외
       const page="https://en.wikipedia.org/wiki/"+encodeURIComponent((p.title||"").replace(/ /g,"_"));
       const qid=p.pageprops&&p.pageprops.wikibase_item;
       if(p.thumbnail&&p.thumbnail.source&&!(p.pageimage&&BADIMG.test(p.pageimage)))
         return {src:p.thumbnail.source,page,qid};
-      if(qid) return {src:null,page,qid}; // 대표이미지가 로고 → Wikidata로
+      if(qid) return {src:null,page,qid}; // 대표이미지 없음/로고 → Wikidata로
     }
   }catch(e){}
   return null;
@@ -514,13 +515,20 @@ async function resolveHit(hit){
   if(hit.qid){ const s=await wikidataPhoto(hit.qid); if(s) return {src:s,page:hit.page}; }
   return null;
 }
-async function wikiPhoto(title){
-  try{
+async function wikiPhoto(title,country){
+  try{ // 1) 문서 제목 직접 조회
     const r=await fetch(WAPI+"&titles="+encodeURIComponent(title));
     if(r.ok){ const got=await resolveHit(parsePages(await r.json())); if(got) return got; }
   }catch(e){}
-  try{ // 제목 불일치 → 검색으로 문서 찾기
-    const r=await fetch(WAPI+"&generator=search&gsrlimit=1&gsrnamespace=0&gsrsearch="+encodeURIComponent(title));
+  const plain=title.replace(/\s*\(.*?\)\s*/g," ").trim();
+  try{ // 2) 이름+국가로 검색 (동음이의 회피)
+    if(country){
+      const r=await fetch(WAPI+"&generator=search&gsrlimit=1&gsrnamespace=0&gsrsearch="+encodeURIComponent(plain+" "+country));
+      if(r.ok){ const got=await resolveHit(parsePages(await r.json())); if(got) return got; }
+    }
+  }catch(e){}
+  try{ // 3) 이름만으로 검색
+    const r=await fetch(WAPI+"&generator=search&gsrlimit=1&gsrnamespace=0&gsrsearch="+encodeURIComponent(plain));
     if(r.ok){ const got=await resolveHit(parsePages(await r.json())); if(got) return got; }
   }catch(e){}
   return null;
@@ -529,8 +537,7 @@ async function loadPhoto(m,token){
   const key=m[0]+"|"+m[1];
   if(photoCache[key]===undefined){
     photoCache[key]=null;
-    const title=m[0].replace(/\s*\(.*?\)\s*/g," ").trim();
-    photoCache[key]=await wikiPhoto(title);
+    photoCache[key]=await wikiPhoto(m[0], (window.COUNTRY_EN&&window.COUNTRY_EN[m[1]])||"");
   }
   if(token!==photoToken) return;           // 이미 다음 라운드로 넘어감
   const p=photoCache[key]; if(!p) return;  // 사진 없음 → 일러스트 유지
@@ -661,7 +668,7 @@ function startSolo(mode){
     const saved=localStorage.getItem("pk_daily_"+dn);
     if(saved){ showDailyResult(JSON.parse(saved),dn); return; }
   }
-  G={mode, fb:false, round:1, pts:[], guesses:[],
+  G={mode, fb:false, round:1, pts:[], guesses:[], used:new Set(),
      mts: mode==="daily" ? pickBalancedSeeded(dn*7919+13,5) : null,
      total: mode==="daily" ? 5 : Infinity };
   $("hparea").style.display="none"; $("multbadge").style.display="none";
@@ -669,7 +676,13 @@ function startSolo(mode){
   screen("game"); soloRound();
 }
 function soloRound(){
-  const idx = G.mode==="daily" ? G.mts[G.round-1] : pickOneBalanced();
+  let idx;
+  if(G.mode==="daily"){ idx=G.mts[G.round-1]; }
+  else{ // 연습: 이번 판에 나온 문제는 다시 안 나옴 (전부 소진 시 초기화)
+    if(G.used.size>=MT.length) G.used.clear();
+    do{ idx=pickOneBalanced(); }while(G.used.has(idx));
+    G.used.add(idx);
+  }
   G.cur=idx;
   const m=MT[idx];
   $("roundtxt").textContent = t("round")+" "+G.round+(G.mode==="daily"?" / 5":"");
