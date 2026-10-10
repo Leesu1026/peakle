@@ -72,6 +72,13 @@ input:focus{border-color:var(--glow)}
 .hpside{flex:1}
 .hpname{font-size:12px;color:var(--dim);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hpname.me{color:var(--ice)}
+.hprow{display:flex;align-items:center;gap:6px;margin-bottom:4px;min-width:0}
+.hprow.r{justify-content:flex-end}
+.hprow .hpname{margin-bottom:0;min-width:0}
+.mchip{flex:none;font-size:11px;font-weight:900;padding:2px 7px;border-radius:7px;background:rgba(255,255,255,.12);color:var(--ice);transition:transform .25s}
+.mchip.hot{background:var(--glow2);color:var(--ink)}
+.mchip.fire{background:var(--bad);color:#fff}
+.mchip.bump{transform:scale(1.35)}
 .hpbar{height:14px;border-radius:8px;background:rgba(0,0,0,.35);overflow:hidden;border:1px solid var(--line)}
 .hpfill{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--ok),#4CC98F);transition:width .6s cubic-bezier(.2,.8,.2,1)}
 .hpfill.enemy{background:linear-gradient(90deg,var(--bad),#D63A5E)}
@@ -192,8 +199,8 @@ select option{color:#000}
 <section id="s-game">
   <div id="hparea">
     <div class="hpwrap">
-      <div class="hpside"><div class="hpname me" id="myname"></div><div class="hpbar"><div class="hpfill" id="myhp"></div></div><div class="hpnum" id="myhpn"></div></div>
-      <div class="hpside"><div class="hpname" id="foename" style="text-align:right"></div><div class="hpbar"><div class="hpfill enemy" id="foehp"></div></div><div class="hpnum" id="foehpn" style="text-align:left"></div></div>
+      <div class="hpside"><div class="hprow"><div class="hpname me" id="myname"></div><span class="mchip" id="mymult">×1</span></div><div class="hpbar"><div class="hpfill" id="myhp"></div></div><div class="hpnum" id="myhpn"></div></div>
+      <div class="hpside"><div class="hprow r"><span class="mchip" id="foemult">×1</span><div class="hpname" id="foename" style="text-align:right"></div></div><div class="hpbar"><div class="hpfill enemy" id="foehp"></div></div><div class="hpnum" id="foehpn" style="text-align:left"></div></div>
     </div>
   </div>
   <div class="roundbar">
@@ -314,7 +321,7 @@ const STR = {
 ko:{
  tag:"세계의 건축물, 그 높이를 맞춰라", nick:"닉네임 (2~12자)", daily:"📅 데일리 챌린지", battle:"⚔️ 1대1 대결",
  practice:"🎯 연습 모드", settings:"⚙️ 설정", quick:"⚡ 빠른 매칭", create:"🏠 방 만들기", join:"입장",
- join_lbl:"코드로 입장", battle_note:"체력 6,000으로 시작. 매 라운드 더 정확히 맞힌 쪽이 두 사람의 점수 차이만큼 상대를 공격해요! 5라운드부터 공격 배수가 라운드마다 0.5씩 올라가요. 최대 15라운드.", rematch:"🔄 재대결", rematch_bot:"🔄 다시 하기", rematch_wait:"상대의 수락을 기다리는 중…", rematch_req:"상대가 재대결을 원해요! 버튼을 누르면 바로 시작해요", opp_gone:"상대가 나갔어요", attack:"공격", tie:"무승부 라운드", join_fail:"상대 연결이 끊겼어요. 다시 찾는 중…",
+ join_lbl:"코드로 입장", battle_note:"체력 6,000으로 시작. 매 라운드 더 가깝게 맞힌 쪽이 두 사람의 점수 차이 × 내 배수만큼 상대를 공격해요. 둘 다 ×1로 시작하고, 라운드를 이길 때마다 내 배수가 +0.5씩 올라가요. 최대 15라운드.", rematch:"🔄 재대결", rematch_bot:"🔄 다시 하기", rematch_wait:"상대의 수락을 기다리는 중…", rematch_req:"상대가 재대결을 원해요! 버튼을 누르면 바로 시작해요", opp_gone:"상대가 나갔어요", attack:"공격", tie:"무승부 라운드", next_mult:"다음 라운드 배수 —", foe:"상대", join_fail:"상대 연결이 끊겼어요. 다시 찾는 중…",
  matching:"상대를 찾는 중…", matching_desc:"30초 안에 상대가 없으면 연습봇과 대결해요", room_wait:"친구를 기다리는 중…",
  room_desc:"아래 코드를 친구에게 알려주세요", copy_code:"코드 복사", copied:"복사했어요!",
  round:"라운드", answer:"실제 높이", me:"나", bot_prefix:"", submit_done:"제출 완료! 상대를 기다리는 중…",
@@ -335,7 +342,7 @@ en:{
  tag:"Guess the height of world landmarks. Battle everyone.", nick:"Nickname (2–12 chars)", daily:"📅 Daily Challenge",
  battle:"⚔️ 1v1 Battle", practice:"🎯 Practice", settings:"⚙️ Settings", quick:"⚡ Quick Match",
  create:"🏠 Create Room", join:"Join", join_lbl:"Join with code",
- battle_note:"Start with 6,000 HP. Each round, the closer guess attacks for the score difference! From round 5 the damage multiplier rises by 0.5 every round. Max 15 rounds.", rematch:"🔄 Rematch", rematch_bot:"🔄 Play again", rematch_wait:"Waiting for opponent…", rematch_req:"Opponent wants a rematch! Tap to start", opp_gone:"Opponent left", attack:"attack", tie:"Tied round", join_fail:"Opponent disconnected. Searching again…",
+ battle_note:"Start with 6,000 HP. Each round, the closer guess attacks for the score difference × their own multiplier. Both start at ×1, and every round you win raises your multiplier by +0.5. Max 15 rounds.", rematch:"🔄 Rematch", rematch_bot:"🔄 Play again", rematch_wait:"Waiting for opponent…", rematch_req:"Opponent wants a rematch! Tap to start", opp_gone:"Opponent left", attack:"attack", tie:"Tied round", next_mult:"Next round multipliers —", foe:"Opponent", join_fail:"Opponent disconnected. Searching again…",
  matching:"Finding an opponent…", matching_desc:"If no one joins in 30s, you'll face a practice bot",
  room_wait:"Waiting for your friend…", room_desc:"Share this code with a friend", copy_code:"Copy code", copied:"Copied!",
  round:"Round", answer:"Actual height", me:"You", bot_prefix:"", submit_done:"Submitted! Waiting for opponent…",
@@ -455,19 +462,26 @@ function fmtH(mm){ return toUnit(mm).toLocaleString() + " " + unit; }
    라운드 점수 0~5000. 오직 "실제 높이와 몇 m 차이 나는가"로만 계산.
    → 같은 문제에서는 더 가깝게 맞힌 사람이 항상 더 높은 점수 (높게/낮게 찍은 방향은 무관)
    오차 2% 이내 만점, 10%≈4,300점, 30%≈3,200점, 50%≈2,400점 */
-const MAXPTS=5000, START_HP=6000, APP_VER=7;
+const MAXPTS=5000, START_HP=6000, APP_VER=8;
 function calcScore(guessM, actualM){
   if(guessM==null||guessM<=0) return 0;
   const r=Math.abs(guessM-actualM)/actualM;   // 실제 높이 대비 차이(m)의 비율
   if(r<=0.02) return MAXPTS;
   return Math.round(MAXPTS*Math.exp(-1.5*r));
 }
-/* 공격 배수: 1~4라운드 ×1, 5라운드부터 라운드마다 +0.5 */
-const multOf = r => r<=4 ? 1 : 1+0.5*(r-4);
-/* 라운드 결과: 더 높은 점수를 낸 쪽이 (점수차 × 배수)만큼 공격, 진 쪽만 체력 감소 */
-function resolveRound(sA,sB,mult){
-  const dmg=Math.round(Math.abs(sA-sB)*mult);
-  return sA>sB ? {a:0,b:dmg} : sA<sB ? {a:dmg,b:0} : {a:0,b:0};
+/* ===== 개인 배수 (GeoGuessr 2026년 4월~ 랭크 듀얼 방식) =====
+   - 두 사람 모두 ×1로 시작
+   - 라운드에서 상대보다 가깝게 맞히면 → 내 배수 +0.5 (다음 라운드부터 적용)
+   - 진 라운드: 배수 유지 (LOSE_RESET=true로 바꾸면 ×1로 초기화)
+   - 비긴 라운드: 둘 다 그대로 */
+const MULT_STEP=0.5, LOSE_RESET=false;
+const nextMult=(m,won,lost)=> won ? m+MULT_STEP : (lost&&LOSE_RESET ? 1 : m);
+/* 라운드 결과: 이긴 쪽이 (점수차 × 이긴 쪽의 현재 배수)만큼 공격, 진 쪽만 체력 감소 */
+function resolveRound(sA,sB,mA,mB){
+  const diff=Math.abs(sA-sB);
+  if(sA>sB) return {a:0,b:Math.round(diff*mA),mA:nextMult(mA,true,false),mB:nextMult(mB,false,true),usedA:mA,usedB:mB};
+  if(sB>sA) return {a:Math.round(diff*mB),b:0,mA:nextMult(mA,false,true),mB:nextMult(mB,true,false),usedA:mA,usedB:mB};
+  return {a:0,b:0,mA,mB,usedA:mA,usedB:mB};
 }
 
 /* 시드 랜덤 (데일리용) */
@@ -756,23 +770,32 @@ function battleUIBase(myNick,foeNick){
   $("hparea").style.display="block"; $("b-quitgame").style.display="none";
   $("myname").textContent=myNick; $("foename").textContent=foeNick;
   setHP(START_HP,START_HP);
+  $("mymult").dataset.v=""; $("foemult").dataset.v=""; setMult(1,1);
 }
 function setHP(me,foe){
   $("myhp").style.width=Math.max(0,me/START_HP*100)+"%"; $("foehp").style.width=Math.max(0,foe/START_HP*100)+"%";
   $("myhpn").textContent=Math.max(0,me).toLocaleString(); $("foehpn").textContent=Math.max(0,foe).toLocaleString();
 }
 function battleRoundUI(r){
-  const mult=multOf(r);
   $("roundtxt").textContent=t("round")+" "+r+" / 15";
   $("scoretxt").textContent="";
-  const mb=$("multbadge"); mb.style.display="inline-block";
-  mb.textContent="×"+mult+" DMG"; mb.className="mult"+(mult>=3?" x3":mult>1?" x2":"");
+  $("multbadge").style.display="none";
 }
+const fmtM=m=>"×"+(+m).toString();
+function setMult(me,foe){
+  [["mymult",me],["foemult",foe]].forEach(([id,m])=>{
+    const el=$(id); m=m||1;
+    if(el.textContent!==fmtM(m)&&el.dataset.v){ el.classList.add("bump"); setTimeout(()=>el.classList.remove("bump"),300); }
+    el.textContent=fmtM(m); el.dataset.v="1";
+    el.className="mchip"+(m>=3?" fire":m>1?" hot":"")+(el.classList.contains("bump")?" bump":"");
+  });
+}
+function multNote(me,foe){ return t("next_mult")+" "+t("me")+" "+fmtM(me||1)+" · "+t("foe")+" "+fmtM(foe||1); }
 /* 비교 박스: 추측값 · 라운드 점수(+) · 공격/피해 */
-function cmpBattle(who,guessM,actual,score,taken,dealt){
+function cmpBattle(who,guessM,actual,score,taken,dealt,usedMult){
   const guessStr = guessM==null||guessM<0 ? "—" : fmtH(guessM);
   const errStr = guessM==null||guessM<0 ? t("timeout") : t("err")+" "+Math.abs(toUnit(actual)-toUnit(guessM)).toLocaleString()+" "+unit;
-  const line = dealt>0 ? `<div class="cmpdmg pts">⚔️ ${dealt.toLocaleString()} ${t("attack")}</div>`
+  const line = dealt>0 ? `<div class="cmpdmg pts">⚔️ ${dealt.toLocaleString()} ${t("attack")} (${fmtM(usedMult||1)})</div>`
              : taken>0 ? `<div class="cmpdmg">-${taken.toLocaleString()} HP</div>`
              : `<div class="cmpdmg" style="color:var(--dim)">${t("tie")}</div>`;
   return `<div class="cmpbox"><div class="cmpwho">${who}</div><div class="cmpval">${guessStr}</div><div class="cmpwho">${errStr}</div><div class="cmppts">+${score.toLocaleString()}${t("pts")}</div>${line}</div>`;
@@ -782,13 +805,13 @@ function cmpBattle(who,guessM,actual,score,taken,dealt){
 function startBotGame(){
   const myNick=localStorage.getItem("pk_nick");
   const foe=BOTNAMES[Math.floor(Math.random()*BOTNAMES.length)];
-  G={mode:"bot",fb:false,round:1,myHP:START_HP,foeHP:START_HP,foeNick:foe,
+  G={mode:"bot",fb:false,round:1,myHP:START_HP,foeHP:START_HP,myMult:1,foeMult:1,foeNick:foe,
      mts:pickBalancedSeeded(Math.floor(Math.random()*1e9),15)};
   battleUIBase(myNick,foe); screen("game"); botRound();
 }
 function botRound(){
   const m=MT[G.mts[G.round-1]];
-  battleRoundUI(G.round); showMountain(m);
+  battleRoundUI(G.round); setMult(G.myMult,G.foeMult); showMountain(m);
   G.deadline=now()+15000; G.myGuess=undefined;
   // 봇: 실제높이 ±(10~40%) 추측 (약간 약하게)
   const e=(0.10+Math.random()*0.30)*(Math.random()<.5?-1:1);
@@ -806,18 +829,19 @@ function botSubmit(raw){
 function botReveal(){
   if(!G) return;
   cancelAnimationFrame(timerRAF);
-  const m=MT[G.mts[G.round-1]],actual=m[2],mult=multOf(G.round);
+  const m=MT[G.mts[G.round-1]],actual=m[2];
   const sMe=calcScore(G.myGuess,actual), sFoe=calcScore(G.botGuess,actual);
-  const d=resolveRound(sMe,sFoe,mult);
-  G.myHP-=d.a; G.foeHP-=d.b;
+  const d=resolveRound(sMe,sFoe,G.myMult,G.foeMult);
+  G.myHP-=d.a; G.foeHP-=d.b; G.myMult=d.mA; G.foeMult=d.mB;
   $("guessarea").style.display="none"; $("revealarea").style.display="block";
   countUp($("altnum"),toUnit(actual)); setHP(G.myHP,G.foeHP);
   $("cmparea").innerHTML =
-    cmpBattle(t("me"),G.myGuess,actual,sMe,d.a,d.b) +
-    cmpBattle(G.foeNick,G.botGuess,actual,sFoe,d.b,d.a);
+    cmpBattle(t("me"),G.myGuess,actual,sMe,d.a,d.b,d.usedA) +
+    cmpBattle(G.foeNick,G.botGuess,actual,sFoe,d.b,d.a,d.usedB);
+  setMult(G.myMult,G.foeMult);
   sndReveal(sMe>=sFoe);
   const dead=G.myHP<=0||G.foeHP<=0, last=G.round>=15;
-  $("nextmsg").textContent = dead||last ? "" : t("next_in");
+  $("nextmsg").textContent = dead||last ? "" : multNote(G.myMult,G.foeMult);
   revealTimer=setTimeout(()=>{
     if(!G) return;
     if(dead||last){ endBattle(G.myHP,G.foeHP,G.foeNick,false,"bot"); }
@@ -1056,7 +1080,7 @@ async function hostRematch(room){
   };
   Object.keys(room.players).forEach(u=>{
     upd[`players/${u}/hp`]=START_HP;
-    ["lastG","lastS","lastD","lastA"].forEach(k=>upd[`players/${u}/${k}`]=null);
+    ["lastG","lastS","lastD","lastA","lastM","mult"].forEach(k=>upd[`players/${u}/${k}`]=null);
   });
   try{ await update(G.roomRef,upd); }catch(e){ if(G) G.resetting=false; }
 }
@@ -1066,7 +1090,7 @@ function netGuessPhase(room,me,foe){
   if(G.shownRound!==r){
     G.shownRound=r; G.submitted=false; G.phase="guess";
     if(r===1) battleUIBase(me.nick,foe?foe.nick:"…");
-    battleRoundUI(r); setHP(me.hp,foe?foe.hp:START_HP);
+    battleRoundUI(r); setHP(me.hp,foe?foe.hp:START_HP); setMult(me.mult,foe?foe.mult:1);
     showMountain(MT[room.mts[r-1]]); if(r===1)toast(t("start_in"));
     screen("game");
   }
@@ -1097,13 +1121,15 @@ async function hostAdvance(){
     const uids=Object.keys(room.players).filter(u=>!room.players[u].left);
     const allIn=uids.every(u=>gs[u]!==undefined);
     if(!allIn && now()<room.state.deadline+600){g0.advancing=false;return;}
-    const actual=MT[room.mts[r-1]][2], mult=multOf(r);
+    const actual=MT[room.mts[r-1]][2];
     const sc={}; uids.forEach(u=>{ const g=gs[u]===undefined||gs[u]<0?null:gs[u]; sc[u]={g,s:calcScore(g,actual)}; });
     const upd={};
     if(uids.length===2){
-      const [a,b]=uids, d=resolveRound(sc[a].s,sc[b].s,mult);
+      const [a,b]=uids, d=resolveRound(sc[a].s,sc[b].s,room.players[a].mult||1,room.players[b].mult||1);
       upd[`players/${a}/hp`]=room.players[a].hp-d.a; upd[`players/${a}/lastD`]=d.a; upd[`players/${a}/lastA`]=d.b;
       upd[`players/${b}/hp`]=room.players[b].hp-d.b; upd[`players/${b}/lastD`]=d.b; upd[`players/${b}/lastA`]=d.a;
+      upd[`players/${a}/lastM`]=d.usedA; upd[`players/${a}/mult`]=d.mA;
+      upd[`players/${b}/lastM`]=d.usedB; upd[`players/${b}/mult`]=d.mB;
     }
     uids.forEach(u=>{ upd[`players/${u}/lastG`]=sc[u].g===null?-1:sc[u].g; upd[`players/${u}/lastS`]=sc[u].s; });
     upd["state/phase"]="reveal"; upd["state/until"]=now()+4500;
@@ -1128,9 +1154,10 @@ function netRevealPhase(room,me,foe){
   $("guessarea").style.display="none"; $("revealarea").style.display="block";
   countUp($("altnum"),toUnit(actual)); setHP(me.hp,foe.hp);
   $("cmparea").innerHTML =
-    cmpBattle(t("me"),me.lastG,actual,me.lastS||0,me.lastD||0,me.lastA||0) +
-    cmpBattle(foe.nick,foe.lastG,actual,foe.lastS||0,foe.lastD||0,foe.lastA||0);
-  $("nextmsg").textContent=t("next_in");
+    cmpBattle(t("me"),me.lastG,actual,me.lastS||0,me.lastD||0,me.lastA||0,me.lastM) +
+    cmpBattle(foe.nick,foe.lastG,actual,foe.lastS||0,foe.lastD||0,foe.lastA||0,foe.lastM);
+  setMult(me.mult,foe.mult);
+  $("nextmsg").textContent=multNote(me.mult,foe.mult);
   sndReveal((me.lastS||0)>=(foe.lastS||0));
   const g0=G;
   setTimeout(()=>{ if(G===g0&&G.phase==="reveal") G.phase="idle"; },4300);
