@@ -113,6 +113,8 @@ input:focus{border-color:var(--glow)}
 .cmpval{font-size:19px;font-weight:900;margin-top:2px;font-variant-numeric:tabular-nums}
 .cmpdmg{font-size:14px;font-weight:900;margin-top:2px;color:var(--bad)}
 .cmpdmg.pts{color:var(--ok)}
+.cmppts{font-size:15px;font-weight:900;color:var(--ok);margin-top:3px}
+.rematchmsg{text-align:center;color:var(--glow2);font-size:14px;font-weight:700;min-height:20px;margin-top:6px}
 
 /* 결과 */
 .bigres{text-align:center;margin:30px 0 8px;font-size:40px;font-weight:900}
@@ -239,7 +241,9 @@ select option{color:#000}
       <div class="cmpbox"><div class="cmpwho" id="r-foename"></div><div class="cmpval" id="r-foehp"></div></div>
     </div>
   </div>
-  <button class="btn" id="b-share-battle"></button>
+  <button class="btn" id="b-rematch"></button>
+  <div class="rematchmsg" id="rematchmsg"></div>
+  <button class="btn ghost" id="b-share-battle"></button>
   <button class="btn ghost" data-go="home" data-i="home"></button>
 </section>
 
@@ -310,20 +314,20 @@ const STR = {
 ko:{
  tag:"세계의 건축물, 그 높이를 맞춰라", nick:"닉네임 (2~12자)", daily:"📅 데일리 챌린지", battle:"⚔️ 1대1 대결",
  practice:"🎯 연습 모드", settings:"⚙️ 설정", quick:"⚡ 빠른 매칭", create:"🏠 방 만들기", join:"입장",
- join_lbl:"코드로 입장", battle_note:"체력 5000으로 시작. 오차가 클수록 큰 데미지! 6라운드부터 데미지 2배, 11라운드부터 3배. 최대 15라운드.",
+ join_lbl:"코드로 입장", battle_note:"체력 6,000으로 시작. 매 라운드 더 정확히 맞힌 쪽이 두 사람의 점수 차이만큼 상대를 공격해요! 5라운드부터 공격 배수가 라운드마다 0.5씩 올라가요. 최대 15라운드.", rematch:"🔄 재대결", rematch_bot:"🔄 다시 하기", rematch_wait:"상대의 수락을 기다리는 중…", rematch_req:"상대가 재대결을 원해요! 버튼을 누르면 바로 시작해요", opp_gone:"상대가 나갔어요", attack:"공격", tie:"무승부 라운드", join_fail:"상대 연결이 끊겼어요. 다시 찾는 중…",
  matching:"상대를 찾는 중…", matching_desc:"30초 안에 상대가 없으면 연습봇과 대결해요", room_wait:"친구를 기다리는 중…",
  room_desc:"아래 코드를 친구에게 알려주세요", copy_code:"코드 복사", copied:"복사했어요!",
  round:"라운드", answer:"실제 높이", me:"나", bot_prefix:"", submit_done:"제출 완료! 상대를 기다리는 중…",
  timeout:"시간 초과!", damage:"데미지", pts:"점", win:"승리!", lose:"패배…", draw:"무승부",
  win_sub:"이 상대할 수 없는 고도 감각!", lose_sub:"다음엔 더 높이 올라가자.", draw_sub:"완벽하게 대등한 실력!",
  opp_left:"상대가 나갔어요. 부전승!", share:"결과 공유하기", home:"홈으로", quit:"나가기",
- daily_title:"데일리 챌린지", daily_max:"/ 5,000점", daily_next:"내일 자정(UTC)에 새 문제가 나와요!",
+ daily_title:"데일리 챌린지", daily_max:"/ 25,000점", daily_next:"내일 자정(UTC)에 새 문제가 나와요!",
  daily_done:"오늘 챌린지를 이미 완료했어요", lang:"언어", unit:"높이 단위", sound:"효과음", on:"켜기", off:"끄기",
  settings_note:"언어를 바꾸면 산 이름도 해당 언어의 공식 표기로 나와요. 공식 표기가 없는 산은 원어 그대로 표시됩니다.",
  nick_short:"닉네임은 2자 이상이어야 해요", nick_bad:"사용할 수 없는 닉네임이에요", no_room:"방을 찾을 수 없어요",
  room_full:"방이 가득 찼어요", practice_end:"연습 종료", rounds_played:"라운드 진행", avg_pts:"평균 점수",
  mts:"개의 세계 건축물 수록", err:"오차", guess_ph:"높이 입력", next_in:"곧 다음 라운드…", start_in:"게임 시작!",
- share_daily:(n,s,e)=>`Peakle 데일리 #${n}\n⛰️ ${s.toLocaleString()} / 5,000점\n${e}\n`,
+ share_daily:(n,s,e)=>`Peakle 데일리 #${n}\n⛰️ ${s.toLocaleString()} / 25,000점\n${e}\n`,
  share_battle:(w,me,foe)=>`Peakle ⚔️ 1대1 배틀 ${w}\n${me} vs ${foe}\n`,
  version_err:"상대와 게임 버전이 달라요. 새로고침 해주세요!",
 },
@@ -331,20 +335,20 @@ en:{
  tag:"Guess the height of world landmarks. Battle everyone.", nick:"Nickname (2–12 chars)", daily:"📅 Daily Challenge",
  battle:"⚔️ 1v1 Battle", practice:"🎯 Practice", settings:"⚙️ Settings", quick:"⚡ Quick Match",
  create:"🏠 Create Room", join:"Join", join_lbl:"Join with code",
- battle_note:"Start with 5000 HP. Bigger error = bigger damage! Damage ×2 from round 6, ×3 from round 11. Max 15 rounds.",
+ battle_note:"Start with 6,000 HP. Each round, the closer guess attacks for the score difference! From round 5 the damage multiplier rises by 0.5 every round. Max 15 rounds.", rematch:"🔄 Rematch", rematch_bot:"🔄 Play again", rematch_wait:"Waiting for opponent…", rematch_req:"Opponent wants a rematch! Tap to start", opp_gone:"Opponent left", attack:"attack", tie:"Tied round", join_fail:"Opponent disconnected. Searching again…",
  matching:"Finding an opponent…", matching_desc:"If no one joins in 30s, you'll face a practice bot",
  room_wait:"Waiting for your friend…", room_desc:"Share this code with a friend", copy_code:"Copy code", copied:"Copied!",
  round:"Round", answer:"Actual height", me:"You", bot_prefix:"", submit_done:"Submitted! Waiting for opponent…",
  timeout:"Time's up!", damage:"damage", pts:"pts", win:"Victory!", lose:"Defeat…", draw:"Draw",
  win_sub:"Unstoppable altitude sense!", lose_sub:"Climb higher next time.", draw_sub:"Perfectly matched!",
  opp_left:"Opponent left. You win!", share:"Share result", home:"Home", quit:"Quit",
- daily_title:"Daily Challenge", daily_max:"/ 5,000 pts", daily_next:"New puzzle at midnight UTC!",
+ daily_title:"Daily Challenge", daily_max:"/ 25,000 pts", daily_next:"New puzzle at midnight UTC!",
  daily_done:"You already finished today's challenge", lang:"Language", unit:"Height unit", sound:"Sound", on:"On", off:"Off",
  settings_note:"Changing language also changes mountain names to their official form in that language. Mountains without one keep their original name.",
  nick_short:"Nickname must be at least 2 characters", nick_bad:"That nickname isn't allowed", no_room:"Room not found",
  room_full:"Room is full", practice_end:"Practice over", rounds_played:"Rounds played", avg_pts:"Avg points",
  mts:"world landmarks", err:"error", guess_ph:"Enter height", next_in:"Next round soon…", start_in:"Game start!",
- share_daily:(n,s,e)=>`Peakle Daily #${n}\n⛰️ ${s.toLocaleString()} / 5,000 pts\n${e}\n`,
+ share_daily:(n,s,e)=>`Peakle Daily #${n}\n⛰️ ${s.toLocaleString()} / 25,000 pts\n${e}\n`,
  share_battle:(w,me,foe)=>`Peakle ⚔️ 1v1 Battle — ${w}\n${me} vs ${foe}\n`,
  version_err:"Game version mismatch with opponent. Please refresh!",
 }};
@@ -447,12 +451,23 @@ function fromUnit(v){ return unit==="m" ? v : Math.round(v/3.28084); }
 function fmtH(mm){ return toUnit(mm).toLocaleString() + " " + unit; }
 
 /* 데미지/점수: 오차비율 r → 0~1000 (GeoGuessr식 곡선) */
-function calcDamage(guessM, actualM){
-  if(guessM==null) return 1000;
-  const r = Math.min(1, Math.abs(guessM-actualM)/actualM);
-  return Math.round(1000 * Math.pow(r, .8));
+/* ===== GeoGuessr식 점수 =====
+   라운드 점수 0~5000: 비율 오차(로그) 기준이라 2배 과대/절반 과소가 같은 점수.
+   오차 2% 이내 만점, 10%≈4,400점, 30%≈3,300~3,600점, 2배 차이≈2,170점 */
+const MAXPTS=5000, START_HP=6000, APP_VER=6;
+function calcScore(guessM, actualM){
+  if(guessM==null||guessM<=0) return 0;
+  const r=Math.abs(Math.log(guessM/actualM));
+  if(r<=0.02) return MAXPTS;
+  return Math.round(MAXPTS*Math.exp(-1.2*r));
 }
-const multOf = r => r>=11 ? 3 : r>=6 ? 2 : 1;
+/* 공격 배수: 1~4라운드 ×1, 5라운드부터 라운드마다 +0.5 */
+const multOf = r => r<=4 ? 1 : 1+0.5*(r-4);
+/* 라운드 결과: 더 높은 점수를 낸 쪽이 (점수차 × 배수)만큼 공격, 진 쪽만 체력 감소 */
+function resolveRound(sA,sB,mult){
+  const dmg=Math.round(Math.abs(sA-sB)*mult);
+  return sA>sB ? {a:0,b:dmg} : sA<sB ? {a:dmg,b:0} : {a:0,b:0};
+}
 
 /* 시드 랜덤 (데일리용) */
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
@@ -615,12 +630,20 @@ let timerRAF = null, revealTimer = null, unsub = [], matchTimer = null;
 function cleanupGame(){
   cancelAnimationFrame(timerRAF); clearTimeout(revealTimer); clearTimeout(matchTimer);
   unsub.forEach(u=>u()); unsub=[];
-  if(G && G.fb){
-    if(G.queueRef) remove(G.queueRef).catch(()=>{});
-    if(G.roomRef && G.iAmHost && (G.phase==="end"||G.phase==="lobby")) remove(G.roomRef).catch(()=>{});
-    else if(G.roomRef && G.phase!=="end") update(ref(db,`rooms/${G.roomId}/players/${uid}`),{left:true}).catch(()=>{});
+  const g=G; G=null;
+  if(g && g.fb){
+    clearTimeout(g.joinTimer);
+    if(g.slotMine){ // 대기 슬롯이 아직 내 것이면 비우기
+      onDisconnect(SLOT()).cancel().catch(()=>{});
+      runTransaction(SLOT(),cur=>(cur&&cur.uid===uid)?null:cur).catch(()=>{});
+    }
+    if(g.roomRef){
+      onDisconnect(ref(db,`rooms/${g.roomId}/players/${uid}/left`)).cancel().catch(()=>{});
+      if(g.iAmHost && g.phase==="lobby") remove(g.roomRef).catch(()=>{});
+      else if(g.phase==="end" && (g.foeLeft||!g.foeUid)) remove(g.roomRef).catch(()=>{}); // 마지막으로 나가는 사람이 방 정리
+      else update(ref(db,`rooms/${g.roomId}/players/${uid}`),{left:true}).catch(()=>{});
+    }
   }
-  G=null;
 }
 
 function showMountain(m){
@@ -661,11 +684,12 @@ function cmpBox(who,val,sub,isPts){
 }
 
 /* ================= 싱글 (데일리 / 연습) ================= */
+const DAILY_KEY="pk_d2_";   // 점수 체계 변경(25,000점제)으로 키 교체
 function startSolo(mode){
   const n=nickname(); if(!nickOk(n)) return;
   const dn=dailyNum();
   if(mode==="daily"){
-    const saved=localStorage.getItem("pk_daily_"+dn);
+    const saved=localStorage.getItem(DAILY_KEY+dn);
     if(saved){ showDailyResult(JSON.parse(saved),dn); return; }
   }
   G={mode, fb:false, round:1, pts:[], guesses:[], used:new Set(),
@@ -688,7 +712,7 @@ function soloRound(){
   $("roundtxt").textContent = t("round")+" "+G.round+(G.mode==="daily"?" / 5":"");
   const sum=G.pts.reduce((a,b)=>a+b,0);
   $("scoretxt").textContent = G.mode==="practice" && G.pts.length
-    ? t("avg_pts")+" "+Math.round(sum/G.pts.length) : (G.mode==="daily"? sum.toLocaleString()+t("pts") : "");
+    ? t("avg_pts")+" "+Math.round(sum/G.pts.length).toLocaleString() : (G.mode==="daily"? sum.toLocaleString()+t("pts") : "");
   showMountain(m);
   G.deadline=now()+15000;
   runTimer(G.deadline,()=>soloSubmit(null));
@@ -698,42 +722,42 @@ function soloSubmit(raw){
   cancelAnimationFrame(timerRAF);
   const m=MT[G.cur], actual=m[2];
   const guessM = raw==null?null:fromUnit(raw);
-  const dmg=calcDamage(guessM,actual), pts=1000-dmg;
+  const pts=calcScore(guessM,actual);
   G.pts.push(pts); G.guesses.push(guessM);
   $("guessarea").style.display="none"; $("revealarea").style.display="block";
   countUp($("altnum"),toUnit(actual));
   const err = guessM==null?t("timeout"):t("err")+" "+Math.abs(toUnit(actual)-toUnit(guessM)).toLocaleString()+" "+unit;
-  $("cmparea").innerHTML=cmpBox(t("me"),guessM==null?"—":fmtH(guessM),err+" · +"+pts+t("pts"),true);
+  $("cmparea").innerHTML=cmpBox(t("me"),guessM==null?"—":fmtH(guessM),err+" · +"+pts.toLocaleString()+t("pts"),true);
   $("nextmsg").textContent=t("next_in");
-  sndReveal(pts>=600);
+  sndReveal(pts>=3500);
   revealTimer=setTimeout(()=>{
     G.locked=false; G.round++;
     if(G.mode==="daily"&&G.round>5){
       const res={s:G.pts.reduce((a,b)=>a+b,0),p:G.pts};
-      localStorage.setItem("pk_daily_"+dailyNum(),JSON.stringify(res));
+      localStorage.setItem(DAILY_KEY+dailyNum(),JSON.stringify(res));
       showDailyResult(res,dailyNum());
     } else soloRound();
   },3200);
 }
-const emOf=p=>p>=850?"🏔️":p>=600?"⛰️":p>=300?"🗻":"🪨";
+const emOf=p=>p>=4500?"🏔️":p>=3500?"⛰️":p>=2000?"🗻":"🪨";
 function showDailyResult(res,dn){
   cleanupGame();
   $("dailytitle").textContent=t("daily_title")+" #"+dn;
   $("dailyscore").textContent=res.s.toLocaleString();
   $("dailyemoji").textContent=res.p.map(emOf).join("");
-  $("dailydetail").innerHTML=res.p.map((p,i)=>`${t("round")} ${i+1} — ${emOf(p)} ${p}${t("pts")}`).join("<br>");
+  $("dailydetail").innerHTML=res.p.map((p,i)=>`${t("round")} ${i+1} — ${emOf(p)} ${p.toLocaleString()}${t("pts")}`).join("<br>");
   $("b-share-daily").onclick=()=>share(STR[L].share_daily(dn,res.s,res.p.map(emOf).join(""))+location.href);
   screen("daily-result");
 }
 
-/* ================= 1대1 대결 ================= */
+/* ================= 1대1 대결 공통 UI ================= */
 function battleUIBase(myNick,foeNick){
   $("hparea").style.display="block"; $("b-quitgame").style.display="none";
   $("myname").textContent=myNick; $("foename").textContent=foeNick;
-  setHP(5000,5000);
+  setHP(START_HP,START_HP);
 }
 function setHP(me,foe){
-  $("myhp").style.width=Math.max(0,me/50)+"%"; $("foehp").style.width=Math.max(0,foe/50)+"%";
+  $("myhp").style.width=Math.max(0,me/START_HP*100)+"%"; $("foehp").style.width=Math.max(0,foe/START_HP*100)+"%";
   $("myhpn").textContent=Math.max(0,me).toLocaleString(); $("foehpn").textContent=Math.max(0,foe).toLocaleString();
 }
 function battleRoundUI(r){
@@ -741,14 +765,21 @@ function battleRoundUI(r){
   $("roundtxt").textContent=t("round")+" "+r+" / 15";
   $("scoretxt").textContent="";
   const mb=$("multbadge"); mb.style.display="inline-block";
-  mb.textContent="×"+mult+" DMG"; mb.className="mult"+(mult===2?" x2":mult===3?" x3":"");
+  mb.textContent="×"+mult+" DMG"; mb.className="mult"+(mult>=3?" x3":mult>1?" x2":"");
+}
+/* 비교 박스: 추측값 · 라운드 점수(+) · 공격/피해 */
+function cmpBattle(who,guessStr,score,taken,dealt){
+  const line = dealt>0 ? `<div class="cmpdmg pts">⚔️ ${dealt.toLocaleString()} ${t("attack")}</div>`
+             : taken>0 ? `<div class="cmpdmg">-${taken.toLocaleString()} HP</div>`
+             : `<div class="cmpdmg" style="color:var(--dim)">${t("tie")}</div>`;
+  return `<div class="cmpbox"><div class="cmpwho">${who}</div><div class="cmpval">${guessStr}</div><div class="cmppts">+${score.toLocaleString()}${t("pts")}</div>${line}</div>`;
 }
 
 /* --- 봇 대결 (오프라인) --- */
 function startBotGame(){
   const myNick=localStorage.getItem("pk_nick");
   const foe=BOTNAMES[Math.floor(Math.random()*BOTNAMES.length)];
-  G={mode:"bot",fb:false,round:1,myHP:5000,foeHP:5000,foeNick:foe,
+  G={mode:"bot",fb:false,round:1,myHP:START_HP,foeHP:START_HP,foeNick:foe,
      mts:pickBalancedSeeded(Math.floor(Math.random()*1e9),15)};
   battleUIBase(myNick,foe); screen("game"); botRound();
 }
@@ -756,10 +787,10 @@ function botRound(){
   const m=MT[G.mts[G.round-1]];
   battleRoundUI(G.round); showMountain(m);
   G.deadline=now()+15000; G.myGuess=undefined;
-  // 봇: 4~11초 후 실제높이 ±(10~40%) 추측 (약간 약하게)
+  // 봇: 실제높이 ±(10~40%) 추측 (약간 약하게)
   const e=(0.10+Math.random()*0.30)*(Math.random()<.5?-1:1);
-  G.botGuess=Math.max(50,Math.round(m[2]*(1+e)));
-  runTimer(G.deadline,()=>{ if(G.myGuess===undefined) botSubmit(null); });
+  G.botGuess=Math.max(1,Math.round(m[2]*(1+e)));
+  runTimer(G.deadline,()=>{ if(G&&G.myGuess===undefined) botSubmit(null); });
 }
 function botSubmit(raw){
   if(!G||G.myGuess!==undefined)return;
@@ -770,26 +801,35 @@ function botSubmit(raw){
   revealTimer=setTimeout(()=>botReveal(),Math.min(wait, Math.max(0,G.deadline-now())));
 }
 function botReveal(){
+  if(!G) return;
   cancelAnimationFrame(timerRAF);
   const m=MT[G.mts[G.round-1]],actual=m[2],mult=multOf(G.round);
-  const dMe=calcDamage(G.myGuess,actual)*mult, dFoe=calcDamage(G.botGuess,actual)*mult;
-  G.myHP-=dMe; G.foeHP-=dFoe;
+  const sMe=calcScore(G.myGuess,actual), sFoe=calcScore(G.botGuess,actual);
+  const d=resolveRound(sMe,sFoe,mult);
+  G.myHP-=d.a; G.foeHP-=d.b;
   $("guessarea").style.display="none"; $("revealarea").style.display="block";
   countUp($("altnum"),toUnit(actual)); setHP(G.myHP,G.foeHP);
   $("cmparea").innerHTML =
-    cmpBox(t("me"),G.myGuess==null?"—":fmtH(G.myGuess),"-"+dMe+" "+t("damage")) +
-    cmpBox(G.foeNick,fmtH(G.botGuess),"-"+dFoe+" "+t("damage"));
-  sndReveal(dMe<=dFoe);
+    cmpBattle(t("me"),G.myGuess==null?"—":fmtH(G.myGuess),sMe,d.a,d.b) +
+    cmpBattle(G.foeNick,fmtH(G.botGuess),sFoe,d.b,d.a);
+  sndReveal(sMe>=sFoe);
   const dead=G.myHP<=0||G.foeHP<=0, last=G.round>=15;
   $("nextmsg").textContent = dead||last ? "" : t("next_in");
   revealTimer=setTimeout(()=>{
-    if(dead||last){ endBattle(G.myHP,G.foeHP,G.foeNick); }
+    if(!G) return;
+    if(dead||last){ endBattle(G.myHP,G.foeHP,G.foeNick,false,"bot"); }
     else{ G.round++; botRound(); }
   },4200);
 }
 
-function endBattle(myHP,foeHP,foeNick,walkover){
-  cleanupGame();
+/* --- 결과 화면 (봇/온라인 공용) ---
+   mode "bot": 다시 하기 = 새 봇전
+   mode "net": 방을 유지한 채 재대결 대기 (G 유지) */
+let lastBattleMode=null;
+function endBattle(myHP,foeHP,foeNick,walkover,mode){
+  lastBattleMode=mode;
+  if(mode==="net"&&G){ cancelAnimationFrame(timerRAF); clearTimeout(revealTimer); G.phase="end"; }
+  else cleanupGame();
   const win = walkover ? true : myHP>foeHP, draw=!walkover&&myHP===foeHP;
   $("restitle").textContent=draw?t("draw"):win?t("win"):t("lose");
   $("restitle").className="bigres "+(draw?"draw":win?"win":"lose");
@@ -799,62 +839,118 @@ function endBattle(myHP,foeHP,foeNick,walkover){
   $("r-foehp").textContent="HP "+Math.max(0,foeHP).toLocaleString();
   const w=draw?t("draw"):win?t("win"):t("lose");
   $("b-share-battle").onclick=()=>share(STR[L].share_battle(w,localStorage.getItem("pk_nick"),foeNick)+location.href);
+  // 재대결 버튼
+  const rb=$("b-rematch");
+  rb.disabled = walkover;   // 상대가 나간 경우 재대결 불가
+  rb.textContent = mode==="bot" ? t("rematch_bot") : t("rematch");
+  $("rematchmsg").textContent = walkover ? t("opp_gone") : "";
   draw?0:win?sndWin():sndLose();
   screen("result");
 }
+$("b-rematch").onclick=()=>{
+  if(lastBattleMode==="bot"){ cleanupGame(); startBotGame(); return; }
+  if(G&&G.mode==="net"&&G.phase==="end"&&!G.foeLeft){
+    set(ref(db,`rooms/${G.roomId}/rematch/${uid}`),true).catch(()=>{});
+    $("b-rematch").disabled=true; $("rematchmsg").textContent=t("rematch_wait");
+  }
+};
 
-/* --- 온라인 대결 공통 --- */
+/* ================= 온라인 공통 ================= */
 const CODE=()=> Array.from({length:5},()=>"ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random()*32)]).join("");
+const ROOMVER=()=>window.MOUNTAINS_VERSION*100+APP_VER;   // 데이터·규칙이 같은 사람끼리만 매칭
 
-async function quickMatch(){
+/* ---------- 빠른 매칭 ----------
+   전 세계 공용 대기 슬롯 1개(queue/_slot)를 트랜잭션으로 다룸.
+   - 슬롯이 비었거나 오래됐으면 → 내가 대기자로 들어감
+   - 다른 사람이 대기 중이면   → 그 사람을 꺼내고 내가 방장이 됨
+   Firebase 트랜잭션은 첫 실행 때 로컬값(대개 빈 값)으로 돌기 때문에,
+   빈 값에서 '중단'하지 않고 항상 값을 반환해야 서버값으로 재실행됨 (이전 버전의 매칭 실패 원인) */
+const SLOT=()=>ref(db,"queue/_slot");
+const SLOT_FRESH=35000;
+async function quickMatch(startTs){
   const n=nickname(); if(!nickOk(n)) return;
+  startTs=startTs||Date.now();
+  cleanupGame();
   $("waittitle").textContent=t("matching"); $("waitdesc").textContent=t("matching_desc");
   $("roomcodebox").style.display="none"; $("b-copycode").style.display="none";
   screen("wait");
-  G={mode:"net",fb:true};
-  // 1) 대기열에서 상대 찾기
-  const snap=await get(ref(db,"queue"));
-  let claimed=null;
-  if(snap.exists()){
-    for(const [ouid,e] of Object.entries(snap.val())){
-      if(ouid===uid||!e||now()-e.ts>25000) continue;
-      const r=await runTransaction(ref(db,"queue/"+ouid),cur=>cur===null?undefined:null);
-      if(r.committed&&r.snapshot.val()===null){ claimed={ouid,nick:e.nick}; break; }
+  const me={mode:"net",fb:true,phase:"matching",matching:true,startTs};
+  G=me;
+  try{
+    // 지난 세션의 초대장 찌꺼기 제거
+    await remove(ref(db,"invites/"+uid));
+    let opp=null;
+    const res=await runTransaction(SLOT(),cur=>{
+      opp=null;
+      const fresh=cur&&cur.uid&&cur.v===ROOMVER()&&(now()-(cur.ts||0)<SLOT_FRESH);
+      if(fresh&&cur.uid!==uid){ opp={uid:cur.uid,nick:cur.nick}; return null; } // 대기자 꺼내기
+      return {uid,nick:n,ts:now(),v:ROOMVER()};                                // 내가 대기
+    });
+    if(G!==me) return;                      // 그 사이 취소됨
+    if(!res.committed) throw new Error("tx");
+    if(opp){                                // ▶ 방장: 방 만들고 초대
+      me.matching=false;
+      const roomId=CODE();
+      await createRoom(roomId,n,true);
+      if(G!==me){ remove(ref(db,"rooms/"+roomId)).catch(()=>{}); return; }
+      await set(ref(db,"invites/"+opp.uid),{room:roomId,ts:now()});
+      enterRoom(roomId,true,{quick:true,startTs});
+      return;
     }
+    // ▶ 대기자: 초대장 기다리기
+    me.slotMine=true;
+    onDisconnect(SLOT()).remove();
+    const invRef=ref(db,"invites/"+uid);
+    onValue(invRef,async s=>{
+      if(G!==me||!s.exists()) return;
+      const inv=s.val(); if(!inv||!inv.room||now()-(inv.ts||0)>20000) return;
+      off(invRef); remove(invRef).catch(()=>{});
+      onDisconnect(SLOT()).cancel(); me.slotMine=false; me.matching=false;
+      clearTimeout(matchTimer);
+      await joinQuickRoom(inv.room,n,me,startTs);
+    });
+    unsub.push(()=>off(invRef));
+    const left=Math.max(3000,30000-(Date.now()-startTs));
+    matchTimer=setTimeout(()=>giveUpWaiting(me,invRef),left);
+  }catch(e){
+    if(G===me){ cleanupGame(); startBotGame(); }
   }
-  if(claimed){ // 내가 방 생성 → 상대에게 초대장
-    const roomId=CODE();
-    await createRoom(roomId,n,true);
-    await update(ref(db,`rooms/${roomId}/players/${claimed.ouid}`),{nick:claimed.nick,hp:5000});
-    await set(ref(db,"invites/"+claimed.ouid),roomId);
-    enterRoom(roomId,true); return;
-  }
-  // 2) 대기열 등록 후 초대 대기
-  G.queueRef=ref(db,"queue/"+uid);
-  await set(G.queueRef,{nick:n,ts:now()});
-  onDisconnect(G.queueRef).remove();
-  const invRef=ref(db,"invites/"+uid);
-  const u=onValue(invRef,s=>{
-    if(!s.exists())return;
-    const roomId=s.val();
-    remove(invRef); remove(G.queueRef); clearTimeout(matchTimer);
-    off(invRef); enterRoom(roomId,false);
-  });
-  unsub.push(()=>off(invRef));
-  matchTimer=setTimeout(()=>{ remove(G.queueRef).catch(()=>{}); off(invRef); startBotGame(); },30000);
+}
+async function giveUpWaiting(me,invRef){
+  if(G!==me) return;
+  // 슬롯이 아직 내 것이면 비우고 봇전. 이미 누가 꺼내갔다면(초대장 오는 중) 조금 더 기다림
+  let stillMine=false;
+  try{
+    await runTransaction(SLOT(),cur=>{ stillMine=!!(cur&&cur.uid===uid); return stillMine?null:cur; });
+  }catch(e){ stillMine=true; }
+  if(G!==me) return;
+  onDisconnect(SLOT()).cancel(); me.slotMine=false;
+  if(stillMine){ off(invRef); cleanupGame(); startBotGame(); }
+  else matchTimer=setTimeout(()=>{ if(G===me){ off(invRef); cleanupGame(); startBotGame(); } },8000);
+}
+async function joinQuickRoom(roomId,n,me,startTs){
+  const s=await get(ref(db,"rooms/"+roomId));
+  if(G!==me) return;
+  if(!s.exists()||s.val().ver!==ROOMVER()){ quickMatch(startTs); return; }
+  await update(ref(db,`rooms/${roomId}/players/${uid}`),{nick:n,hp:START_HP});
+  onDisconnect(ref(db,`rooms/${roomId}/players/${uid}/left`)).set(true);
+  if(G!==me) return;
+  enterRoom(roomId,false,{quick:true,startTs});
 }
 
+/* ---------- 친구 방 ---------- */
 async function createRoom(roomId,nick,quick){
   await set(ref(db,"rooms/"+roomId),{
-    created:now(), host:uid, ver:window.MOUNTAINS_VERSION, quick:!!quick,
+    created:now(), host:uid, ver:ROOMVER(), quick:!!quick, game:1,
     mts:pickBalancedSeeded(Math.floor(Math.random()*1e9),15),
-    players:{[uid]:{nick,hp:5000}},
+    players:{[uid]:{nick,hp:START_HP}},
     state:{phase:"lobby",round:0}
   });
   onDisconnect(ref(db,`rooms/${roomId}/players/${uid}/left`)).set(true);
 }
 async function createFriendRoom(){
   const n=nickname(); if(!nickOk(n)) return;
+  cleanupGame();
   const roomId=CODE();
   await createRoom(roomId,n,false);
   $("waittitle").textContent=t("room_wait"); $("waitdesc").textContent=t("room_desc");
@@ -862,7 +958,7 @@ async function createFriendRoom(){
   $("b-copycode").style.display="block";
   $("b-copycode").onclick=()=>{navigator.clipboard.writeText(roomId).then(()=>toast(t("copied")));};
   screen("wait");
-  enterRoom(roomId,true,true);
+  enterRoom(roomId,true,{});
 }
 async function joinRoom(){
   const n=nickname(); if(!nickOk(n)) return;
@@ -870,106 +966,157 @@ async function joinRoom(){
   const s=await get(ref(db,"rooms/"+roomId));
   if(!s.exists()){toast(t("no_room"));return;}
   const room=s.val();
-  if(Object.keys(room.players||{}).length>=2){toast(t("room_full"));return;}
-  if(room.ver!==window.MOUNTAINS_VERSION){toast(t("version_err"));return;}
-  await update(ref(db,`rooms/${roomId}/players/${uid}`),{nick:n,hp:5000});
+  const active=Object.values(room.players||{}).filter(p=>!p.left);
+  if(active.length>=2){toast(t("room_full"));return;}
+  if(room.ver!==ROOMVER()){toast(t("version_err"));return;}
+  cleanupGame();
+  await update(ref(db,`rooms/${roomId}/players/${uid}`),{nick:n,hp:START_HP,left:null});
   onDisconnect(ref(db,`rooms/${roomId}/players/${uid}/left`)).set(true);
-  enterRoom(roomId,false);
+  enterRoom(roomId,false,{});
 }
 
-function enterRoom(roomId,iAmHost,stayOnWait){
-  G={mode:"net",fb:true,roomId,iAmHost,roomRef:ref(db,"rooms/"+roomId),phase:"lobby",shownRound:0,hostActing:iAmHost};
-  const rref=G.roomRef;
-  const u=onValue(rref,snap=>{
-    if(!snap.exists()){ if(G&&G.phase!=="end"){cleanupGame();screen("home");} return; }
-    const room=snap.val(); if(!G) return;
+/* ---------- 방 진행 (로비 → 라운드 → 결과 → 재대결) ---------- */
+function enterRoom(roomId,iAmHost,opts){
+  opts=opts||{};
+  const me0={mode:"net",fb:true,roomId,iAmHost,roomRef:ref(db,"rooms/"+roomId),
+             phase:"lobby",shownRound:0,hostActing:iAmHost,game:undefined};
+  G=me0;
+  const rref=me0.roomRef;
+  // 빠른매칭 방장: 상대가 8초 안에 안 들어오면(유령 대기자) 방 지우고 다시 매칭
+  if(opts.quick&&iAmHost){
+    me0.joinTimer=setTimeout(()=>{
+      if(G===me0&&me0.phase==="lobby"&&!me0.foeUid){ toast(t("join_fail")); quickMatch(opts.startTs); }
+    },8000);
+  }
+  onValue(rref,snap=>{
+    if(G!==me0) return;
+    if(!snap.exists()){
+      if(me0.phase==="end"){ me0.foeLeft=true; $("b-rematch").disabled=true; $("rematchmsg").textContent=t("opp_gone"); }
+      else { cleanupGame(); screen("home"); }
+      return;
+    }
+    const room=snap.val();
     const players=room.players||{};
     const foeUid=Object.keys(players).find(k=>k!==uid);
     const me=players[uid], foe=foeUid?players[foeUid]:null;
-    G.foeUid=foeUid;
+    if(!me) return;
+    me0.foeUid=foeUid; me0.foeLeft=!!(foe&&foe.left);
 
-    // 상대 이탈 → 부전승
-    if(foe&&foe.left&&room.state.phase!=="end"&&G.phase!=="end"){
-      G.phase="end"; update(ref(db,`rooms/${roomId}/state`),{phase:"end"}).catch(()=>{});
-      endBattle(me?me.hp:5000,foe.hp,foe.nick,true);
-      remove(rref).catch(()=>{}); return;
+    // 재대결로 새 판이 시작됐는지 감지 → 로컬 상태 초기화
+    const gameNo=room.game||1;
+    if(me0.game===undefined) me0.game=gameNo;
+    else if(gameNo!==me0.game){
+      me0.game=gameNo; me0.phase="lobby"; me0.shownRound=0; me0.submitted=false;
+      me0.advancing=false; me0.resetting=false;
+      $("b-rematch").disabled=false; $("rematchmsg").textContent="";
     }
-    // 호스트 이탈 시 남은 쪽이 진행 담당
-    if(room.host!==uid && players[room.host] && players[room.host].left) G.hostActing=true;
-    if(room.host===uid) G.hostActing=true;
 
-    // 로비 → 두 명 모이면 시작 (호스트가 트리거)
+    // 결과 화면에서: 상대 이탈/재대결 요청 처리
+    if(me0.phase==="end"){
+      if(me0.foeLeft){ $("b-rematch").disabled=true; $("rematchmsg").textContent=t("opp_gone"); return; }
+      const rm=room.rematch||{};
+      if(rm[uid]&&foeUid&&rm[foeUid]){ if(room.host===uid||me0.hostActing) hostRematch(room); }
+      else if(foeUid&&rm[foeUid]&&!rm[uid]) $("rematchmsg").textContent=t("rematch_req");
+      return;
+    }
+
+    // 대전 중 상대 이탈 → 부전승
+    if(foe&&foe.left&&room.state.phase!=="end"&&room.state.phase!=="lobby"){
+      endBattle(me.hp,foe.hp,foe.nick,true,"net");
+      return;
+    }
+    if(room.host!==uid && players[room.host] && players[room.host].left) me0.hostActing=true;
+    if(room.host===uid) me0.hostActing=true;
+
     if(room.state.phase==="lobby"){
-      if(foe && G.hostActing && !G.startSent){
-        G.startSent=true;
+      if(foe && !foe.left && me0.hostActing && !me0.startSent){
+        me0.startSent=true; clearTimeout(me0.joinTimer);
         update(ref(db,`rooms/${roomId}/state`),{phase:"guess",round:1,deadline:now()+16000});
       }
       return;
     }
+    clearTimeout(me0.joinTimer);
     if(room.state.phase==="guess") netGuessPhase(room,me,foe);
     if(room.state.phase==="reveal") netRevealPhase(room,me,foe);
-    if(room.state.phase==="end" && G.phase!=="end"){
-      G.phase="end";
-      endBattle(me.hp,foe?foe.hp:0,foe?foe.nick:"?");
-      if(G&&G.iAmHost) remove(rref).catch(()=>{});
+    if(room.state.phase==="end"){
+      endBattle(me.hp,foe?foe.hp:0,foe?foe.nick:"?",false,"net");
     }
   });
-  unsub.push(()=>off(G&&G.roomRef?G.roomRef:ref(db,"rooms/"+roomId)));
+  unsub.push(()=>off(rref));
+}
+async function hostRematch(room){
+  if(!G||G.resetting) return; G.resetting=true;
+  const upd={
+    mts:pickBalancedSeeded(Math.floor(Math.random()*1e9),15),
+    guesses:null, rematch:null, game:(room.game||1)+1,
+    state:{phase:"guess",round:1,deadline:now()+16000}
+  };
+  Object.keys(room.players).forEach(u=>{
+    upd[`players/${u}/hp`]=START_HP;
+    ["lastG","lastS","lastD","lastA"].forEach(k=>upd[`players/${u}/${k}`]=null);
+  });
+  try{ await update(G.roomRef,upd); }catch(e){ if(G) G.resetting=false; }
 }
 
 function netGuessPhase(room,me,foe){
   const r=room.state.round;
   if(G.shownRound!==r){
-    G.shownRound=r; G.submitted=false;
+    G.shownRound=r; G.submitted=false; G.phase="guess";
     if(r===1) battleUIBase(me.nick,foe?foe.nick:"…");
-    battleRoundUI(r); setHP(me.hp,foe?foe.hp:5000);
+    battleRoundUI(r); setHP(me.hp,foe?foe.hp:START_HP);
     showMountain(MT[room.mts[r-1]]); if(r===1)toast(t("start_in"));
     screen("game");
   }
   G.phase="guess";
+  const g0=G;
   runTimer(room.state.deadline,()=>{
+    if(G!==g0) return;
     if(!G.submitted) netSubmit(null,room);
-    if(G.hostActing) hostAdvance(room);
+    if(G.hostActing) hostAdvance();
   });
-  // 둘 다 제출됐으면 호스트가 즉시 진행
   const gs=(room.guesses||{})["r"+r]||{};
-  if(G.hostActing && G.foeUid && gs[uid]!==undefined && gs[G.foeUid]!==undefined) hostAdvance(room);
+  if(G.hostActing && G.foeUid && gs[uid]!==undefined && gs[G.foeUid]!==undefined) hostAdvance();
 }
 async function netSubmit(raw,roomSnap){
   if(!G||G.submitted)return; G.submitted=true;
   $("guess").disabled=true;$("b-submit").disabled=true;
   $("waitmsg").textContent=t("submit_done");
-  const room=roomSnap|| (await get(G.roomRef)).val(); if(!room)return;
+  const room=roomSnap|| (await get(G.roomRef)).val(); if(!room||!G)return;
   const v = raw==null ? -1 : fromUnit(raw);
   await set(ref(db,`rooms/${G.roomId}/guesses/r${room.state.round}/${uid}`),v);
 }
-async function hostAdvance(roomMaybe){
-  if(G.advancing)return; G.advancing=true;
+async function hostAdvance(){
+  if(!G||G.advancing)return; G.advancing=true;
+  const g0=G;
   try{
-    const room=(await get(G.roomRef)).val(); if(!room||room.state.phase!=="guess"){G.advancing=false;return;}
+    const room=(await get(g0.roomRef)).val(); if(!room||room.state.phase!=="guess"){g0.advancing=false;return;}
     const r=room.state.round, gs=(room.guesses||{})["r"+r]||{};
-    const uids=Object.keys(room.players);
+    const uids=Object.keys(room.players).filter(u=>!room.players[u].left);
     const allIn=uids.every(u=>gs[u]!==undefined);
-    if(!allIn && now()<room.state.deadline+600){G.advancing=false;return;}
+    if(!allIn && now()<room.state.deadline+600){g0.advancing=false;return;}
     const actual=MT[room.mts[r-1]][2], mult=multOf(r);
+    const sc={}; uids.forEach(u=>{ const g=gs[u]===undefined||gs[u]<0?null:gs[u]; sc[u]={g,s:calcScore(g,actual)}; });
     const upd={};
-    uids.forEach(u=>{
-      const g=gs[u]===undefined||gs[u]<0?null:gs[u];
-      upd[`players/${u}/hp`]=room.players[u].hp - calcDamage(g,actual)*mult;
-      upd[`players/${u}/lastG`]=g===null?-1:g;
-      upd[`players/${u}/lastD`]=calcDamage(g,actual)*mult;
-    });
+    if(uids.length===2){
+      const [a,b]=uids, d=resolveRound(sc[a].s,sc[b].s,mult);
+      upd[`players/${a}/hp`]=room.players[a].hp-d.a; upd[`players/${a}/lastD`]=d.a; upd[`players/${a}/lastA`]=d.b;
+      upd[`players/${b}/hp`]=room.players[b].hp-d.b; upd[`players/${b}/lastD`]=d.b; upd[`players/${b}/lastA`]=d.a;
+    }
+    uids.forEach(u=>{ upd[`players/${u}/lastG`]=sc[u].g===null?-1:sc[u].g; upd[`players/${u}/lastS`]=sc[u].s; });
     upd["state/phase"]="reveal"; upd["state/until"]=now()+4500;
-    await update(G.roomRef,upd);
+    await update(g0.roomRef,upd);
     setTimeout(async()=>{
-      const cur=(await get(G.roomRef)).val(); if(!cur)return;
-      const hs=Object.values(cur.players).map(p=>p.hp);
-      const dead=hs.some(h=>h<=0), last=r>=15;
-      if(dead||last) await update(ref(db,`rooms/${G.roomId}/state`),{phase:"end"});
-      else await update(ref(db,`rooms/${G.roomId}/state`),{phase:"guess",round:r+1,deadline:now()+15600});
-      G.advancing=false;
+      try{
+        const cur=(await get(g0.roomRef)).val();
+        if(!cur||cur.state.phase!=="reveal"||cur.state.round!==r){g0.advancing=false;return;}
+        const hs=Object.values(cur.players).filter(p=>!p.left).map(p=>p.hp);
+        const dead=hs.some(h=>h<=0), last=r>=15;
+        if(dead||last) await update(ref(db,`rooms/${g0.roomId}/state`),{phase:"end"});
+        else await update(ref(db,`rooms/${g0.roomId}/state`),{phase:"guess",round:r+1,deadline:now()+15600});
+      }catch(e){}
+      g0.advancing=false;
     },4600);
-  }catch(e){G.advancing=false;}
+  }catch(e){g0.advancing=false;}
 }
 function netRevealPhase(room,me,foe){
   if(G.phase==="reveal"||!foe)return; G.phase="reveal";
@@ -979,11 +1126,12 @@ function netRevealPhase(room,me,foe){
   countUp($("altnum"),toUnit(actual)); setHP(me.hp,foe.hp);
   const f=g=>g===-1||g==null?"—":fmtH(g);
   $("cmparea").innerHTML =
-    cmpBox(t("me"),f(me.lastG),"-"+(me.lastD||0)+" "+t("damage")) +
-    cmpBox(foe.nick,f(foe.lastG),"-"+(foe.lastD||0)+" "+t("damage"));
+    cmpBattle(t("me"),f(me.lastG),me.lastS||0,me.lastD||0,me.lastA||0) +
+    cmpBattle(foe.nick,f(foe.lastG),foe.lastS||0,foe.lastD||0,foe.lastA||0);
   $("nextmsg").textContent=t("next_in");
-  sndReveal((me.lastD||0)<=(foe.lastD||0));
-  setTimeout(()=>{ if(G) G.phase="idle"; },4300);
+  sndReveal((me.lastS||0)>=(foe.lastS||0));
+  const g0=G;
+  setTimeout(()=>{ if(G===g0&&G.phase==="reveal") G.phase="idle"; },4300);
 }
 
 /* ================= 공유 ================= */
@@ -1008,7 +1156,7 @@ $("b-daily").onclick=()=>startSolo("daily");
 $("b-practice").onclick=()=>startSolo("practice");
 $("b-battle").onclick=()=>{ const n=nickname(); if(nickOk(n)) screen("battle"); };
 $("b-settings").onclick=()=>screen("settings");
-$("b-quick").onclick=quickMatch;
+$("b-quick").onclick=()=>quickMatch();
 $("b-create").onclick=createFriendRoom;
 $("b-join").onclick=joinRoom;
 $("b-cancelwait").onclick=()=>{cleanupGame();screen("battle");};
