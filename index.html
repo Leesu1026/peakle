@@ -452,14 +452,15 @@ function fmtH(mm){ return toUnit(mm).toLocaleString() + " " + unit; }
 
 /* 데미지/점수: 오차비율 r → 0~1000 (GeoGuessr식 곡선) */
 /* ===== GeoGuessr식 점수 =====
-   라운드 점수 0~5000: 비율 오차(로그) 기준이라 2배 과대/절반 과소가 같은 점수.
-   오차 2% 이내 만점, 10%≈4,400점, 30%≈3,300~3,600점, 2배 차이≈2,170점 */
-const MAXPTS=5000, START_HP=6000, APP_VER=6;
+   라운드 점수 0~5000. 오직 "실제 높이와 몇 m 차이 나는가"로만 계산.
+   → 같은 문제에서는 더 가깝게 맞힌 사람이 항상 더 높은 점수 (높게/낮게 찍은 방향은 무관)
+   오차 2% 이내 만점, 10%≈4,300점, 30%≈3,200점, 50%≈2,400점 */
+const MAXPTS=5000, START_HP=6000, APP_VER=7;
 function calcScore(guessM, actualM){
   if(guessM==null||guessM<=0) return 0;
-  const r=Math.abs(Math.log(guessM/actualM));
+  const r=Math.abs(guessM-actualM)/actualM;   // 실제 높이 대비 차이(m)의 비율
   if(r<=0.02) return MAXPTS;
-  return Math.round(MAXPTS*Math.exp(-1.2*r));
+  return Math.round(MAXPTS*Math.exp(-1.5*r));
 }
 /* 공격 배수: 1~4라운드 ×1, 5라운드부터 라운드마다 +0.5 */
 const multOf = r => r<=4 ? 1 : 1+0.5*(r-4);
@@ -768,11 +769,13 @@ function battleRoundUI(r){
   mb.textContent="×"+mult+" DMG"; mb.className="mult"+(mult>=3?" x3":mult>1?" x2":"");
 }
 /* 비교 박스: 추측값 · 라운드 점수(+) · 공격/피해 */
-function cmpBattle(who,guessStr,score,taken,dealt){
+function cmpBattle(who,guessM,actual,score,taken,dealt){
+  const guessStr = guessM==null||guessM<0 ? "—" : fmtH(guessM);
+  const errStr = guessM==null||guessM<0 ? t("timeout") : t("err")+" "+Math.abs(toUnit(actual)-toUnit(guessM)).toLocaleString()+" "+unit;
   const line = dealt>0 ? `<div class="cmpdmg pts">⚔️ ${dealt.toLocaleString()} ${t("attack")}</div>`
              : taken>0 ? `<div class="cmpdmg">-${taken.toLocaleString()} HP</div>`
              : `<div class="cmpdmg" style="color:var(--dim)">${t("tie")}</div>`;
-  return `<div class="cmpbox"><div class="cmpwho">${who}</div><div class="cmpval">${guessStr}</div><div class="cmppts">+${score.toLocaleString()}${t("pts")}</div>${line}</div>`;
+  return `<div class="cmpbox"><div class="cmpwho">${who}</div><div class="cmpval">${guessStr}</div><div class="cmpwho">${errStr}</div><div class="cmppts">+${score.toLocaleString()}${t("pts")}</div>${line}</div>`;
 }
 
 /* --- 봇 대결 (오프라인) --- */
@@ -810,8 +813,8 @@ function botReveal(){
   $("guessarea").style.display="none"; $("revealarea").style.display="block";
   countUp($("altnum"),toUnit(actual)); setHP(G.myHP,G.foeHP);
   $("cmparea").innerHTML =
-    cmpBattle(t("me"),G.myGuess==null?"—":fmtH(G.myGuess),sMe,d.a,d.b) +
-    cmpBattle(G.foeNick,fmtH(G.botGuess),sFoe,d.b,d.a);
+    cmpBattle(t("me"),G.myGuess,actual,sMe,d.a,d.b) +
+    cmpBattle(G.foeNick,G.botGuess,actual,sFoe,d.b,d.a);
   sndReveal(sMe>=sFoe);
   const dead=G.myHP<=0||G.foeHP<=0, last=G.round>=15;
   $("nextmsg").textContent = dead||last ? "" : t("next_in");
@@ -1124,10 +1127,9 @@ function netRevealPhase(room,me,foe){
   const actual=MT[room.mts[room.state.round-1]][2];
   $("guessarea").style.display="none"; $("revealarea").style.display="block";
   countUp($("altnum"),toUnit(actual)); setHP(me.hp,foe.hp);
-  const f=g=>g===-1||g==null?"—":fmtH(g);
   $("cmparea").innerHTML =
-    cmpBattle(t("me"),f(me.lastG),me.lastS||0,me.lastD||0,me.lastA||0) +
-    cmpBattle(foe.nick,f(foe.lastG),foe.lastS||0,foe.lastD||0,foe.lastA||0);
+    cmpBattle(t("me"),me.lastG,actual,me.lastS||0,me.lastD||0,me.lastA||0) +
+    cmpBattle(foe.nick,foe.lastG,actual,foe.lastS||0,foe.lastD||0,foe.lastA||0);
   $("nextmsg").textContent=t("next_in");
   sndReveal((me.lastS||0)>=(foe.lastS||0));
   const g0=G;
