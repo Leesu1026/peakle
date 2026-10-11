@@ -96,6 +96,8 @@ input:focus{border-color:var(--glow)}
 .mtimg img.photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;z-index:1}
 .mtimg img.photo.fit{object-fit:contain}
 .mtimg img.photobg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(20px) brightness(.5);transform:scale(1.15);z-index:0}
+.phload{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--dim);font-size:13px}
+.spin2{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--glow);animation:sp 1s linear infinite}
 .mtcredit{position:absolute;right:6px;bottom:5px;font-size:10px;color:rgba(255,255,255,.85);background:rgba(0,0,0,.45);padding:2px 7px;border-radius:8px;text-decoration:none;z-index:2}
 .mtmeta{display:flex;align-items:center;justify-content:center;gap:12px;padding:14px 14px 16px;text-align:left}
 .mtflagimg{width:42px;height:auto;border-radius:5px;box-shadow:0 1px 5px rgba(0,0,0,.5);flex:none;border:1px solid rgba(255,255,255,.15)}
@@ -321,7 +323,7 @@ const STR = {
 ko:{
  tag:"세계의 건축물, 그 높이를 맞춰라", nick:"닉네임 (2~12자)", daily:"📅 데일리 챌린지", battle:"⚔️ 1대1 대결",
  practice:"🎯 연습 모드", settings:"⚙️ 설정", quick:"⚡ 빠른 매칭", create:"🏠 방 만들기", join:"입장",
- join_lbl:"코드로 입장", battle_note:"체력 6,000으로 시작. 매 라운드 더 가깝게 맞힌 쪽이 두 사람의 점수 차이 × 내 배수만큼 상대를 공격해요. 둘 다 ×1로 시작하고, 라운드를 이길 때마다 내 배수가 +0.5씩 올라가요. 최대 15라운드.", rematch:"🔄 재대결", rematch_bot:"🔄 다시 하기", rematch_wait:"상대의 수락을 기다리는 중…", rematch_req:"상대가 재대결을 원해요! 버튼을 누르면 바로 시작해요", opp_gone:"상대가 나갔어요", attack:"공격", tie:"무승부 라운드", next_mult:"다음 라운드 배수 —", foe:"상대", join_fail:"상대 연결이 끊겼어요. 다시 찾는 중…",
+ join_lbl:"코드로 입장", battle_note:"체력 6,000으로 시작. 매 라운드 더 가깝게 맞힌 쪽이 두 사람의 점수 차이 × 내 배수만큼 상대를 공격해요. 둘 다 ×1로 시작하고, 라운드를 이길 때마다 내 배수가 +0.5씩 올라가요. 최대 15라운드.", rematch:"🔄 재대결", rematch_bot:"🔄 다시 하기", rematch_wait:"상대의 수락을 기다리는 중…", rematch_req:"상대가 재대결을 원해요! 버튼을 누르면 바로 시작해요", opp_gone:"상대가 나갔어요", attack:"공격", tie:"무승부 라운드", photo_loading:"사진 불러오는 중…", next_mult:"다음 라운드 배수 —", foe:"상대", join_fail:"상대 연결이 끊겼어요. 다시 찾는 중…",
  matching:"상대를 찾는 중…", matching_desc:"30초 안에 상대가 없으면 연습봇과 대결해요", room_wait:"친구를 기다리는 중…",
  room_desc:"아래 코드를 친구에게 알려주세요", copy_code:"코드 복사", copied:"복사했어요!",
  round:"라운드", answer:"실제 높이", me:"나", bot_prefix:"", submit_done:"제출 완료! 상대를 기다리는 중…",
@@ -342,7 +344,7 @@ en:{
  tag:"Guess the height of world landmarks. Battle everyone.", nick:"Nickname (2–12 chars)", daily:"📅 Daily Challenge",
  battle:"⚔️ 1v1 Battle", practice:"🎯 Practice", settings:"⚙️ Settings", quick:"⚡ Quick Match",
  create:"🏠 Create Room", join:"Join", join_lbl:"Join with code",
- battle_note:"Start with 6,000 HP. Each round, the closer guess attacks for the score difference × their own multiplier. Both start at ×1, and every round you win raises your multiplier by +0.5. Max 15 rounds.", rematch:"🔄 Rematch", rematch_bot:"🔄 Play again", rematch_wait:"Waiting for opponent…", rematch_req:"Opponent wants a rematch! Tap to start", opp_gone:"Opponent left", attack:"attack", tie:"Tied round", next_mult:"Next round multipliers —", foe:"Opponent", join_fail:"Opponent disconnected. Searching again…",
+ battle_note:"Start with 6,000 HP. Each round, the closer guess attacks for the score difference × their own multiplier. Both start at ×1, and every round you win raises your multiplier by +0.5. Max 15 rounds.", rematch:"🔄 Rematch", rematch_bot:"🔄 Play again", rematch_wait:"Waiting for opponent…", rematch_req:"Opponent wants a rematch! Tap to start", opp_gone:"Opponent left", attack:"attack", tie:"Tied round", photo_loading:"Loading photo…", next_mult:"Next round multipliers —", foe:"Opponent", join_fail:"Opponent disconnected. Searching again…",
  matching:"Finding an opponent…", matching_desc:"If no one joins in 30s, you'll face a practice bot",
  room_wait:"Waiting for your friend…", room_desc:"Share this code with a friend", copy_code:"Copy code", copied:"Copied!",
  round:"Round", answer:"Actual height", me:"You", bot_prefix:"", submit_done:"Submitted! Waiting for opponent…",
@@ -384,74 +386,6 @@ $("nick").value = localStorage.getItem("pk_nick") || "";
 function flagURL(iso){ return "https://flagcdn.com/w160/"+iso.toLowerCase()+".png"; }
 function mtName(m){ return (L==="ko" && m[3]) ? m[3] : m[0]; }
 
-/* ===== 건축물 일러스트 생성기 (사진 없을 때 폴백) =====
-   이름+국가로 시드를 만들어 항상 같은 그림이 나오되,
-   '높이'는 시드에 넣지 않아 그림이 정답 힌트가 되지 않음 */
-function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
-const PALETTES=[
- {sky:["#0B1026","#2A3B66"],ridge:["#4A5B8C","#2E3C68","#1A2547"],orb:"#E8F0F7",night:1},          // 밤
- {sky:["#1B2A4A","#FF8E6E"],ridge:["#6E5A7E","#43395F","#241F40"],orb:"#FFD9A0"},                   // 새벽
- {sky:["#7FB8D8","#DCEFF7"],ridge:["#5E7FA6","#3E5C82","#27405E"],orb:"#FFF4D6"},                   // 낮
- {sky:["#2E2440","#FF6E5F"],ridge:["#7A4A5E","#4E3048","#2A1B33"],orb:"#FFC48A"},                   // 노을
- {sky:["#22333F","#87A8A4"],ridge:["#57707A","#3A4F58","#232F36"],orb:"#E5EEEA"},                   // 안개
-];
-function mountainArt(m){
-  const cat=m[4]||0;
-  const rnd=mulberry32(hashStr(m[0]+"|"+m[1]));
-  const P=PALETTES[Math.floor(rnd()*PALETTES.length)];
-  const W=400,H=225,gid="g"+Math.floor(rnd()*1e6);
-  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">`;
-  s+=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="${P.sky[0]}"/><stop offset="1" stop-color="${P.sky[1]}"/></linearGradient></defs>`;
-  s+=`<rect width="${W}" height="${H}" fill="url(#${gid})"/>`;
-  if(P.night){for(let i=0;i<26;i++)s+=`<circle cx="${rnd()*W}" cy="${rnd()*H*.5}" r="${.5+rnd()}" fill="#F2F6F9" opacity="${.3+rnd()*.6}"/>`;}
-  const ox=40+rnd()*(W-80),oy=22+rnd()*55,orr=P.night?13+rnd()*5:16+rnd()*8;
-  s+=`<circle cx="${ox}" cy="${oy}" r="${orr*2.1}" fill="${P.orb}" opacity=".14"/>`;
-  s+=`<circle cx="${ox}" cy="${oy}" r="${orr}" fill="${P.orb}" opacity=".95"/>`;
-
-  if(cat===1||cat===2){ /* ===== 건물·타워: 도시 스카이라인 ===== */
-    for(let l=0;l<2;l++){
-      const base=H, col=P.ridge[l+1], n=4+Math.floor(rnd()*3);
-      for(let i=0;i<n;i++){
-        const bw=34+rnd()*44, bx=(W/n)*i+rnd()*20-10, bh=(l===0?60:95)+rnd()*(l===0?70:95);
-        s+=`<rect x="${bx.toFixed(1)}" y="${(base-bh).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" fill="${col}"/>`;
-        if(rnd()<.4) s+=`<rect x="${(bx+bw*.35).toFixed(1)}" y="${(base-bh-14).toFixed(1)}" width="${(bw*.3).toFixed(1)}" height="14" fill="${col}"/>`;
-        if(l===1){ // 앞줄 건물 창문 불빛
-          const wc=P.night?"#FFD98A":"#E8F0F7", rows=Math.floor(bh/16), cols=Math.floor(bw/12);
-          for(let r=0;r<rows;r++)for(let c=0;c<cols;c++)
-            if(rnd()<(P.night?.45:.25)) s+=`<rect x="${(bx+4+c*12).toFixed(1)}" y="${(base-bh+6+r*16).toFixed(1)}" width="5" height="7" fill="${wc}" opacity=".85"/>`;
-        }
-      }
-    }
-    // 시그니처 첨탑 빌딩
-    const sx=110+rnd()*180, sh=150+rnd()*45, swd=26+rnd()*14;
-    s+=`<polygon points="${sx-swd},${H} ${sx-swd},${H-sh*.72} ${sx},${H-sh} ${sx+swd},${H-sh*.72} ${sx+swd},${H}" fill="${P.ridge[2]}"/>`;
-    s+=`<rect x="${sx-1.2}" y="${H-sh-22}" width="2.4" height="24" fill="${P.ridge[2]}"/>`;
-    s+=`<circle cx="${sx}" cy="${H-sh-23}" r="2.6" fill="${P.night?"#FF6E5F":P.orb}"/>`;
-  }
-  else{ /* ===== 그 외: 기념물 실루엣 ===== */
-    // 지평선 + 잔디/광장
-    s+=`<rect x="0" y="${H-40}" width="${W}" height="40" fill="${P.ridge[2]}"/>`;
-    s+=`<ellipse cx="${W/2}" cy="${H-40}" rx="120" ry="8" fill="${P.ridge[1]}" opacity=".6"/>`;
-    const kind=Math.floor(rnd()*3), cx=W/2, gy=H-40, col=P.ridge[2], hi=P.ridge[0];
-    // 받침대
-    s+=`<rect x="${cx-42}" y="${gy-22}" width="84" height="22" fill="${col}"/>`;
-    s+=`<rect x="${cx-30}" y="${gy-34}" width="60" height="12" fill="${hi}"/>`;
-    if(kind===0){ // 오벨리스크/타워형
-      s+=`<polygon points="${cx-14},${gy-34} ${cx-8},${gy-158} ${cx+8},${gy-158} ${cx+14},${gy-34}" fill="${col}"/>`;
-      s+=`<polygon points="${cx-8},${gy-158} ${cx},${gy-176} ${cx+8},${gy-158}" fill="${hi}"/>`;
-    }else if(kind===1){ // 아치형
-      s+=`<path d="M${cx-62},${gy-34} A62,110 0 0 1 ${cx+62},${gy-34} L${cx+40},${gy-34} A40,84 0 0 0 ${cx-40},${gy-34} Z" fill="${col}"/>`;
-    }else{ // 돔·석상형
-      s+=`<rect x="${cx-26}" y="${gy-96}" width="52" height="62" fill="${col}"/>`;
-      s+=`<path d="M${cx-30},${gy-96} A30,30 0 0 1 ${cx+30},${gy-96} Z" fill="${hi}"/>`;
-      s+=`<rect x="${cx-2}" y="${gy-134}" width="4" height="14" fill="${hi}"/>`;
-      s+=`<circle cx="${cx}" cy="${gy-138}" r="4" fill="${hi}"/>`;
-    }
-  }
-  s+=`</svg>`;
-  return s;
-}
 const CATS={1:{ko:"건물",en:"Building",ic:"🏢"},2:{ko:"타워",en:"Tower",ic:"🗼"},3:{ko:"다리",en:"Bridge",ic:"🌉"},4:{ko:"기념물·동상",en:"Monument / Statue",ic:"🗽"},5:{ko:"종교 건축",en:"Religious",ic:"⛪"},6:{ko:"경기장·구조물",en:"Stadium / Structure",ic:"🏟"}};
 function toUnit(mm){ return unit==="m" ? mm : Math.round(mm*3.28084); }
 function fromUnit(v){ return unit==="m" ? v : Math.round(v/3.28084); }
@@ -508,90 +442,75 @@ function pickBalanced(rnd,count){
 const pickBalancedSeeded=(seed,count)=>pickBalanced(mulberry32(seed),count);
 const pickOneBalanced=()=>pickBalanced(Math.random,1)[0];
 
-/* ===== Wikipedia 실사진 로더 v3 =====
-   로고·지도류 이미지 필터링 → Wikidata 대표사진(P18) 폴백 → 검색 폴백 */
-const photoCache={};
+/* ===== 건축물 실사진 =====
+   모든 건축물은 사진 주소가 데이터(mountains.js)에 미리 들어있고, 전부 사전에 실제 로딩 테스트를 통과한
+   Wikimedia Commons(자유 라이선스) 사진만 사용. 게임 중 위키백과 검색을 하지 않으므로 엉뚱한 사진이나
+   '사진 없음'이 생기지 않음. 로딩 실패 시: 같은 사진 다른 서버 → 예비 사진 → 처음부터 재시도(끝없이). */
 let photoToken=0;
-const BADIMG=/logo|icon|seal|flag|map|coat|emblem|crest|wordmark|banner|montage|diagram/i;
-const WAPI="https://en.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&redirects=1&prop=pageimages%7Cpageprops&piprop=thumbnail%7Cname&pithumbsize=1000&ppprop=wikibase_item%7Cdisambiguation";
-function parsePages(j){
-  try{
-    const pages=j.query&&j.query.pages;
-    if(!pages||!pages.length) return null;
-    for(const p of pages){
-      if(p.pageprops&&p.pageprops.disambiguation!==undefined) continue; // 동음이의 페이지 제외
-      const page="https://en.wikipedia.org/wiki/"+encodeURIComponent((p.title||"").replace(/ /g,"_"));
-      const qid=p.pageprops&&p.pageprops.wikibase_item;
-      if(p.thumbnail&&p.thumbnail.source&&!(p.pageimage&&BADIMG.test(p.pageimage)))
-        return {src:p.thumbnail.source,page,qid};
-      if(qid) return {src:null,page,qid}; // 대표이미지 없음/로고 → Wikidata로
-    }
-  }catch(e){}
-  return null;
-}
-async function wikidataPhoto(qid){
-  try{
-    const r=await fetch("https://www.wikidata.org/w/api.php?action=wbgetclaims&format=json&origin=*&property=P18&entity="+qid);
-    if(!r.ok) return null;
-    const j=await r.json();
-    const f=j.claims&&j.claims.P18&&j.claims.P18[0]&&j.claims.P18[0].mainsnak.datavalue.value;
-    if(!f||BADIMG.test(f)) return null;
-    return "https://commons.wikimedia.org/wiki/Special:FilePath/"+encodeURIComponent(f.replace(/ /g,"_"))+"?width=1000";
-  }catch(e){ return null; }
-}
-async function resolveHit(hit){
-  if(!hit) return null;
-  if(hit.src) return {src:hit.src,page:hit.page};
-  if(hit.qid){ const s=await wikidataPhoto(hit.qid); if(s) return {src:s,page:hit.page}; }
-  return null;
-}
-async function wikiPhoto(title,country){
-  try{ // 1) 문서 제목 직접 조회
-    const r=await fetch(WAPI+"&titles="+encodeURIComponent(title));
-    if(r.ok){ const got=await resolveHit(parsePages(await r.json())); if(got) return got; }
-  }catch(e){}
-  const plain=title.replace(/\s*\(.*?\)\s*/g," ").trim();
-  try{ // 2) 이름+국가로 검색 (동음이의 회피)
-    if(country){
-      const r=await fetch(WAPI+"&generator=search&gsrlimit=1&gsrnamespace=0&gsrsearch="+encodeURIComponent(plain+" "+country));
-      if(r.ok){ const got=await resolveHit(parsePages(await r.json())); if(got) return got; }
-    }
-  }catch(e){}
-  try{ // 3) 이름만으로 검색
-    const r=await fetch(WAPI+"&generator=search&gsrlimit=1&gsrnamespace=0&gsrsearch="+encodeURIComponent(plain));
-    if(r.ok){ const got=await resolveHit(parsePages(await r.json())); if(got) return got; }
-  }catch(e){}
-  return null;
-}
-async function loadPhoto(m,token){
-  const key=m[0]+"|"+m[1];
-  if(photoCache[key]===undefined){
-    photoCache[key]=null;
-    photoCache[key]=await wikiPhoto(m[0], (window.COUNTRY_EN&&window.COUNTRY_EN[m[1]])||"");
+const IMG_HOSTS=["https://upload.wikimedia.org","https://thumb.wikimedia.org"];
+function photoURLs(m){
+  const out=[];
+  for(const [p,r] of (m[5]||[])){
+    const t=p.match(/^(.*)\/([^/]+)@(\d+)$/);
+    if(t) IMG_HOSTS.forEach(hst=>out.push({u:hst+"/wikipedia/commons/thumb/"+t[1]+"/"+t[2]+"/"+t[3]+"px-"+t[2],file:t[2],r}));
+    else out.push({u:IMG_HOSTS[0]+"/wikipedia/commons/"+p,file:p.split("/").pop(),r});
   }
-  if(token!==photoToken) return;           // 이미 다음 라운드로 넘어감
-  const p=photoCache[key]; if(!p) return;  // 사진 없음 → 일러스트 유지
-  const img=new Image();
-  img.onload=()=>{ if(token!==photoToken) return;
-    const box=$("mtimg");
-    const r=img.naturalWidth/Math.max(1,img.naturalHeight);
-    // 사진 비율에 맞춰 프레임 조정 (정사각~16:9 사이)
-    box.style.aspectRatio=Math.max(1.0,Math.min(1.78,r)).toFixed(3);
-    if(r<1.55){ // 세로/정방형 사진: 전체가 보이도록 + 흐린 배경 채움
-      const bg=new Image(); bg.src=p.src; bg.className="photobg"; bg.draggable=false;
-      box.appendChild(bg);
-      img.className="photo fit";
-    } else {
-      img.className="photo";
+  return out;
+}
+function tryLoad(u,ms){
+  return new Promise(res=>{
+    const i=new Image();
+    const tm=setTimeout(()=>{i.onload=i.onerror=null;res(null);},ms);
+    i.onload=()=>{clearTimeout(tm);res(i.naturalWidth>40?{u,w:i.naturalWidth,h:i.naturalHeight}:null);};
+    i.onerror=()=>{clearTimeout(tm);res(null);};
+    i.src=u;
+  });
+}
+const photoMemo=new Map();
+function getPhoto(m){
+  const key=m[0];
+  if(photoMemo.has(key)) return photoMemo.get(key);
+  const pr=(async()=>{
+    const list=photoURLs(m);
+    for(let lap=0;lap<2;lap++){
+      for(const c of list){ const ok=await tryLoad(c.u,lap?15000:9000); if(ok) return {...ok,file:c.file}; }
+      await new Promise(s=>setTimeout(s,1200));
     }
-    img.draggable=false;
-    box.appendChild(img);
-    const a=document.createElement("a");
-    a.className="mtcredit"; a.textContent=(L==="ko"?"사진: Wikipedia":"Photo: Wikipedia");
-    if(p.page){a.href=p.page;a.target="_blank";a.rel="noopener";}
-    box.appendChild(a);
-  };
-  img.src=p.src;
+    return null;
+  })();
+  photoMemo.set(key,pr);
+  pr.then(v=>{ if(!v) photoMemo.delete(key); });   // 실패 기록은 남기지 않음 → 다음에 다시 시도
+  return pr;
+}
+const preloadPhotos=list=>list.forEach(m=>{ if(m) getPhoto(m); });
+function renderPhoto(p){
+  const box=$("mtimg"); box.innerHTML="";
+  const r=p.w/Math.max(1,p.h);
+  box.style.aspectRatio=Math.max(1.0,Math.min(1.78,r)).toFixed(3);
+  if(r<1.55){ // 세로·정방형 사진: 잘리지 않게 전체 표시 + 흐린 배경
+    const bg=new Image(); bg.src=p.u; bg.className="photobg"; bg.draggable=false; box.appendChild(bg);
+  }
+  const img=new Image(); img.src=p.u; img.className="photo"+(r<1.55?" fit":""); img.draggable=false; img.alt="";
+  box.appendChild(img);
+  const a=document.createElement("a");
+  a.className="mtcredit"; a.textContent=(L==="ko"?"사진: Wikimedia Commons":"Photo: Wikimedia Commons");
+  a.href="https://commons.wikimedia.org/wiki/File:"+p.file; a.target="_blank"; a.rel="noopener";
+  box.appendChild(a);
+}
+/* 사진을 띄우고, 실제로 화면에 나왔을 때 resolve(true) */
+function showPhoto(m,token){
+  const box=$("mtimg");
+  const r0=(m[5]&&m[5][0]&&m[5][0][1])||0;
+  box.style.aspectRatio=r0?Math.max(1.0,Math.min(1.78,r0)).toFixed(3):"16/9";
+  box.innerHTML='<div class="phload"><div class="spin2"></div><span>'+t("photo_loading")+'</span></div>';
+  return new Promise(resolve=>{
+    const attempt=()=>getPhoto(m).then(p=>{
+      if(token!==photoToken) return resolve(false);
+      if(!p){ setTimeout(attempt,2500); return; }   // 네트워크 문제: 사진이 뜰 때까지 계속 재시도
+      renderPhoto(p); resolve(true);
+    });
+    attempt();
+  });
 }
 
 /* ================= 효과음 (WebAudio 합성) ================= */
@@ -663,17 +582,25 @@ function cleanupGame(){
 
 function showMountain(m){
   photoToken++;
-  $("mtimg").innerHTML = mountainArt(m);
-  $("mtimg").style.aspectRatio="16/9";
+  const shown=showPhoto(m,photoToken);
   $("mtflag").src = flagURL(m[1]);
   $("mtname").textContent = mtName(m);
-  loadPhoto(m,photoToken);
   const c=CATS[m[4]||0];
   $("mtsub").textContent = c.ic+" "+(L==="ko"?c.ko:c.en) + ((L==="ko"&&m[3]) ? " · "+m[0] : "");
   $("guess").value=""; $("guess").disabled=false; $("b-submit").disabled=false;
   $("waitmsg").textContent="";
   $("guessarea").style.display="block"; $("revealarea").style.display="none";
   setTimeout(()=>$("guess").focus(),80);
+  return shown;
+}
+/* 혼자 하는 모드: 사진이 화면에 뜬 뒤에 15초 타이머 시작 (최대 8초 대기) */
+function startTimerWhenShown(shown,onExpire){
+  const g0=G, tok=photoToken;
+  $("timerfill").style.width="100%";
+  Promise.race([shown,new Promise(s=>setTimeout(s,8000))]).then(()=>{
+    if(G!==g0||tok!==photoToken||!G||G.locked) return;
+    G.deadline=now()+15000; runTimer(G.deadline,onExpire);
+  });
 }
 function runTimer(deadline,onExpire){
   cancelAnimationFrame(timerRAF);
@@ -707,9 +634,10 @@ function startSolo(mode){
     const saved=localStorage.getItem(DAILY_KEY+dn);
     if(saved){ showDailyResult(JSON.parse(saved),dn); return; }
   }
-  G={mode, fb:false, round:1, pts:[], guesses:[], used:new Set(),
+  G={mode, fb:false, round:1, pts:[], guesses:[], used:new Set(), next:null,
      mts: mode==="daily" ? pickBalancedSeeded(dn*7919+13,5) : null,
      total: mode==="daily" ? 5 : Infinity };
+  if(G.mts) preloadPhotos(G.mts.map(i=>MT[i]));
   $("hparea").style.display="none"; $("multbadge").style.display="none";
   $("b-quitgame").style.display = mode==="practice" ? "block" : "none";
   screen("game"); soloRound();
@@ -717,10 +645,13 @@ function startSolo(mode){
 function soloRound(){
   let idx;
   if(G.mode==="daily"){ idx=G.mts[G.round-1]; }
-  else{ // 연습: 이번 판에 나온 문제는 다시 안 나옴 (전부 소진 시 초기화)
+  else{ // 연습: 이번 판에 나온 문제는 다시 안 나옴 (전부 소진 시 초기화) + 다음 문제 사진 미리 받기
     if(G.used.size>=MT.length) G.used.clear();
-    do{ idx=pickOneBalanced(); }while(G.used.has(idx));
+    const pickUnused=()=>{ let k; do{ k=pickOneBalanced(); }while(G.used.has(k)); return k; };
+    idx=(G.next!=null&&!G.used.has(G.next))?G.next:pickUnused();
     G.used.add(idx);
+    G.next=G.used.size<MT.length?pickUnused():null;
+    if(G.next!=null) preloadPhotos([MT[G.next]]);
   }
   G.cur=idx;
   const m=MT[idx];
@@ -728,9 +659,7 @@ function soloRound(){
   const sum=G.pts.reduce((a,b)=>a+b,0);
   $("scoretxt").textContent = G.mode==="practice" && G.pts.length
     ? t("avg_pts")+" "+Math.round(sum/G.pts.length).toLocaleString() : (G.mode==="daily"? sum.toLocaleString()+t("pts") : "");
-  showMountain(m);
-  G.deadline=now()+15000;
-  runTimer(G.deadline,()=>soloSubmit(null));
+  startTimerWhenShown(showMountain(m),()=>soloSubmit(null));
 }
 function soloSubmit(raw){
   if(!G||G.locked)return; G.locked=true;
@@ -807,16 +736,18 @@ function startBotGame(){
   const foe=BOTNAMES[Math.floor(Math.random()*BOTNAMES.length)];
   G={mode:"bot",fb:false,round:1,myHP:START_HP,foeHP:START_HP,myMult:1,foeMult:1,foeNick:foe,
      mts:pickBalancedSeeded(Math.floor(Math.random()*1e9),15)};
+  preloadPhotos(G.mts.map(i=>MT[i]));
   battleUIBase(myNick,foe); screen("game"); botRound();
 }
 function botRound(){
   const m=MT[G.mts[G.round-1]];
-  battleRoundUI(G.round); setMult(G.myMult,G.foeMult); showMountain(m);
-  G.deadline=now()+15000; G.myGuess=undefined;
+  battleRoundUI(G.round); setMult(G.myMult,G.foeMult);
+  G.myGuess=undefined; G.deadline=now()+60000;
+  const shown=showMountain(m);
   // 봇: 실제높이 ±(10~40%) 추측 (약간 약하게)
   const e=(0.10+Math.random()*0.30)*(Math.random()<.5?-1:1);
   G.botGuess=Math.max(1,Math.round(m[2]*(1+e)));
-  runTimer(G.deadline,()=>{ if(G&&G.myGuess===undefined) botSubmit(null); });
+  startTimerWhenShown(shown,()=>{ if(G&&G.myGuess===undefined) botSubmit(null); });
 }
 function botSubmit(raw){
   if(!G||G.myGuess!==undefined)return;
@@ -1023,6 +954,7 @@ function enterRoom(roomId,iAmHost,opts){
       return;
     }
     const room=snap.val();
+    if(room.mts&&me0.preloadedFor!==room.game){ me0.preloadedFor=room.game; preloadPhotos(room.mts.map(i=>MT[i])); }
     const players=room.players||{};
     const foeUid=Object.keys(players).find(k=>k!==uid);
     const me=players[uid], foe=foeUid?players[foeUid]:null;
