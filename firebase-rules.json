@@ -2,15 +2,60 @@
   "rules": {
     ".read": false,
     ".write": false,
+
+    "nicknames": {
+      "$k": {
+        ".write": "auth != null && $k.length <= 120 && (!data.exists() || data.child('owner').val() === auth.uid || (newData.exists() && newData.child('code').val() === data.child('code').val()))",
+        ".validate": "newData.hasChildren(['owner', 'code', 'nick']) && newData.child('owner').val() === auth.uid",
+        "owner": { ".read": true, ".validate": "newData.isString()" },
+        "nick": { ".read": true, ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 12" },
+        "code": { ".validate": "newData.isString() && newData.val().matches(/^[A-Z0-9]{8}$/)" },
+        "$other": { ".validate": false }
+      }
+    },
+
+    "stats": {
+      "$k": {
+        ".read": true,
+        ".write": "auth != null && root.child('nicknames').child($k).child('owner').val() === auth.uid",
+        "games": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "wins": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "losses": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "draws": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "best": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 25000" },
+        "daily": {
+          "$n": {
+            ".validate": "!data.exists() && newData.hasChildren(['s', 'p']) && newData.child('s').isNumber() && newData.child('s').val() >= 0 && newData.child('s').val() <= 25000 && newData.child('p').isString() && newData.child('p').val().length <= 40"
+          }
+        },
+        "$other": { ".validate": false }
+      }
+    },
+
     "queue": {
-      ".read": true,
-      "$uid": { ".write": true }
+      "_slot": {
+        ".read": "auth != null",
+        ".write": "auth != null && (!newData.exists() || newData.child('uid').val().beginsWith(auth.uid))",
+        ".validate": "newData.hasChildren(['uid', 'nick', 'ts', 'v']) && newData.child('nick').isString() && newData.child('nick').val().length <= 12 && newData.child('ts').isNumber() && newData.child('v').isNumber()"
+      }
     },
+
     "invites": {
-      "$uid": { ".read": true, ".write": true }
+      "$pid": {
+        ".read": "auth != null && $pid.beginsWith(auth.uid)",
+        ".write": "auth != null",
+        ".validate": "newData.hasChildren(['room', 'ts']) && newData.child('room').isString() && newData.child('room').val().matches(/^[A-Z0-9]{5}$/) && newData.child('ts').isNumber()"
+      }
     },
+
     "rooms": {
-      "$roomId": { ".read": true, ".write": true }
+      ".read": "auth != null && query.orderByChild == 'created' && query.limitToFirst <= 20 && query.endAt <= now - 3600000",
+      ".indexOn": ["created"],
+      "$r": {
+        ".read": "auth != null",
+        ".write": "auth != null && $r.matches(/^[A-Z0-9]{5}$/) && (!data.exists() || data.child('members').child(auth.uid).exists() || newData.child('members').child(auth.uid).exists() || (!newData.exists() && data.child('created').val() < now - 3600000))",
+        ".validate": "newData.hasChildren(['created', 'host', 'ver', 'mts', 'state'])"
+      }
     }
   }
 }

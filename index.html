@@ -15,6 +15,8 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://upload.wikimedia.org" crossorigin>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -98,7 +100,13 @@ input:focus{border-color:var(--glow)}
 .mtimg img.photobg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(20px) brightness(.5);transform:scale(1.15);z-index:0}
 .phload{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--dim);font-size:13px}
 .spin2{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--glow);animation:sp 1s linear infinite}
-.mtcredit{position:absolute;right:6px;bottom:5px;font-size:10px;color:rgba(255,255,255,.85);background:rgba(0,0,0,.45);padding:2px 7px;border-radius:8px;text-decoration:none;z-index:2}
+.nickstat{font-size:12.5px;margin-top:6px;min-height:17px;color:var(--dim)}
+.nickstat.ok{color:var(--ok)}.nickstat.bad{color:var(--bad)}
+.nickstat button{background:none;border:none;color:var(--glow2);text-decoration:underline;font:inherit;cursor:pointer;padding:0 0 0 6px}
+.mystats{font-size:13px;color:var(--ice);min-height:18px;margin:2px 0 6px}
+.srclink{display:none;font-size:12px;color:var(--dim);margin-top:6px;text-decoration:underline}
+.codeval{font-weight:900;letter-spacing:3px;color:var(--glow2)}
+.mtcredit{position:absolute;right:6px;bottom:5px;font-size:10px;color:rgba(255,255,255,.85);background:rgba(0,0,0,.45);padding:2px 7px;border-radius:8px;text-decoration:none;z-index:2;pointer-events:none;user-select:none}
 .mtmeta{display:flex;align-items:center;justify-content:center;gap:12px;padding:14px 14px 16px;text-align:left}
 .mtflagimg{width:42px;height:auto;border-radius:5px;box-shadow:0 1px 5px rgba(0,0,0,.5);flex:none;border:1px solid rgba(255,255,255,.15)}
 .mtname{font-size:26px;font-weight:900;word-break:keep-all;user-select:none;line-height:1.15}
@@ -163,7 +171,15 @@ select option{color:#000}
   <div class="field">
     <label class="lbl" data-i="nick"></label>
     <input type="text" id="nick" maxlength="12" autocomplete="off">
+    <div class="nickstat" id="nickstat"></div>
+    <div id="recoverrow" style="display:none">
+      <div class="guessrow" style="margin-top:8px">
+        <input type="text" id="recode" maxlength="9" autocomplete="off" style="text-transform:uppercase;letter-spacing:3px;text-align:center;font-size:16px">
+        <button class="gbtn" id="b-recover" style="font-size:14px;padding:0 14px"></button>
+      </div>
+    </div>
   </div>
+  <div class="center mystats" id="mystats"></div>
   <button class="btn" id="b-daily"></button>
   <button class="btn" id="b-battle"></button>
   <button class="btn ghost" id="b-practice"></button>
@@ -236,6 +252,7 @@ select option{color:#000}
       <div class="cmp" id="cmparea"></div>
     </div>
     <div class="waitmsg" id="nextmsg"></div>
+    <div class="center"><a class="srclink" id="srclink" target="_blank" rel="noopener"></a></div>
   </div>
   <button class="btn ghost" id="b-quitgame" style="margin-top:16px"></button>
 </section>
@@ -290,6 +307,11 @@ select option{color:#000}
       <div class="seg"><button id="snd-on" data-i="on"></button><button id="snd-off" data-i="off"></button></div>
     </div>
   </div>
+  <div class="card" id="codecard">
+    <div class="setrow"><span><span data-i="code_title"></span> <b id="codenick" style="color:var(--ice)"></b></span><span class="codeval" id="codeval">—</span></div>
+    <button class="btn ghost small" id="b-copyrc" data-i="copy_code2"></button>
+    <p class="note" data-i="code_note"></p>
+  </div>
   <p class="note" data-i="settings_note"></p>
 </section>
 
@@ -300,8 +322,11 @@ select option{color:#000}
 <script type="module">
 /* ================= Firebase ================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, set, get, update, remove, onValue, off, onDisconnect, runTransaction }
+import { getDatabase, ref, set, get, update, remove, onValue, off, onDisconnect, runTransaction,
+         increment, query, orderByChild, endAt, limitToFirst }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getAuth, signInAnonymously, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDvybMXX5DRJ3DeJDmzJevtHTxetIiG4fg",
@@ -317,13 +342,29 @@ const db = getDatabase(fbApp);
 let serverOffset = 0;
 onValue(ref(db, ".info/serverTimeOffset"), s => { serverOffset = s.val() || 0; });
 const now = () => Date.now() + serverOffset;
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+/* ===== 익명 인증 (회원가입 화면 없음) =====
+   기기마다 보이지 않는 고유 ID를 Firebase가 자동 발급 → 보안 규칙이 "누가 쓴 데이터인지" 확인 가능.
+   uid = 플레이어 ID(같은 기기의 탭 2개로도 대결 가능하도록 탭 번호를 붙임) */
+const auth = getAuth(fbApp);
+let AUID = null, uid = null;
+const TAB = sessionStorage.getItem("pk_tab") || (()=>{const v=Math.random().toString(36).slice(2,6);sessionStorage.setItem("pk_tab",v);return v;})();
+const authReady = new Promise(res=>{ onAuthStateChanged(auth,u=>{ if(u){ AUID=u.uid; uid=AUID+"_"+TAB; res(true); } }); });
+signInAnonymously(auth).catch(()=>{});
+const online = () => Promise.race([authReady, sleep(7000).then(()=>false)]);
 
 /* ================= i18n ================= */
 const STR = {
 ko:{
  tag:"세계의 건축물, 그 높이를 맞춰라", nick:"닉네임 (2~12자)", daily:"📅 데일리 챌린지", battle:"⚔️ 1대1 대결",
  practice:"🎯 연습 모드", settings:"⚙️ 설정", quick:"⚡ 빠른 매칭", create:"🏠 방 만들기", join:"입장",
- join_lbl:"코드로 입장", battle_note:"체력 6,000으로 시작. 매 라운드 더 가깝게 맞힌 쪽이 두 사람의 점수 차이 × 내 배수만큼 상대를 공격해요. 둘 다 ×1로 시작하고, 라운드를 이길 때마다 내 배수가 +0.5씩 올라가요. 최대 15라운드.", rematch:"🔄 재대결", rematch_bot:"🔄 다시 하기", rematch_wait:"상대의 수락을 기다리는 중…", rematch_req:"상대가 재대결을 원해요! 버튼을 누르면 바로 시작해요", opp_gone:"상대가 나갔어요", attack:"공격", tie:"무승부 라운드", photo_loading:"사진 불러오는 중…", next_mult:"다음 라운드 배수 —", foe:"상대", join_fail:"상대 연결이 끊겼어요. 다시 찾는 중…",
+ join_lbl:"코드로 입장", battle_note:"체력 1,000으로 시작. 매 라운드 더 가깝게 맞힌 쪽이 '두 사람 오차의 차이(m) × 내 배수'만큼 상대 체력을 깎아요. 예: 내 오차 20m, 상대 오차 70m → 상대 -50. 둘 다 ×1로 시작하고, 라운드를 이길 때마다 내 배수가 +0.5씩 올라가요. 최대 15라운드.",
+ nick_chars:"닉네임은 글자·숫자·공백·_·- 만 쓸 수 있어요", nick_taken:"이미 사용 중인 닉네임이에요", nick_free:"사용할 수 있는 닉네임", nick_mine:"내 닉네임",
+ recover_q:"내 닉네임인가요?", recover_btn:"복구", recover_ok:"닉네임을 가져왔어요!", recover_bad:"복구 코드가 맞지 않아요", recover_ph:"복구 코드",
+ offline:"서버에 연결할 수 없어요. 인터넷을 확인해 주세요", code_title:"내 복구 코드", copy_code2:"복구 코드 복사",
+ code_note:"다른 기기나 브라우저에서 이 닉네임(과 전적)을 쓰려면 이 코드가 필요해요. 남에게 알려주지 마세요.",
+ w:"승", l:"패", d:"무", daily_best:"데일리 최고", photo_src:"사진 출처 (Wikimedia Commons)", daily_saved:"진행 상황을 저장했어요. 나중에 이어서 할 수 있어요", rematch:"🔄 재대결", rematch_bot:"🔄 다시 하기", rematch_wait:"상대의 수락을 기다리는 중…", rematch_req:"상대가 재대결을 원해요! 버튼을 누르면 바로 시작해요", opp_gone:"상대가 나갔어요", attack:"공격", tie:"무승부 라운드", photo_loading:"사진 불러오는 중…", next_mult:"다음 라운드 배수 —", foe:"상대", join_fail:"상대 연결이 끊겼어요. 다시 찾는 중…",
  matching:"상대를 찾는 중…", matching_desc:"30초 안에 상대가 없으면 연습봇과 대결해요", room_wait:"친구를 기다리는 중…",
  room_desc:"아래 코드를 친구에게 알려주세요", copy_code:"코드 복사", copied:"복사했어요!",
  round:"라운드", answer:"실제 높이", me:"나", bot_prefix:"", submit_done:"제출 완료! 상대를 기다리는 중…",
@@ -332,7 +373,7 @@ ko:{
  opp_left:"상대가 나갔어요. 부전승!", share:"결과 공유하기", home:"홈으로", quit:"나가기",
  daily_title:"데일리 챌린지", daily_max:"/ 25,000점", daily_next:"내일 자정(UTC)에 새 문제가 나와요!",
  daily_done:"오늘 챌린지를 이미 완료했어요", lang:"언어", unit:"높이 단위", sound:"효과음", on:"켜기", off:"끄기",
- settings_note:"언어를 바꾸면 산 이름도 해당 언어의 공식 표기로 나와요. 공식 표기가 없는 산은 원어 그대로 표시됩니다.",
+ settings_note:"언어를 바꾸면 건축물 이름도 해당 언어 표기로 나와요. 표기가 없는 건축물은 원어 그대로 표시됩니다.",
  nick_short:"닉네임은 2자 이상이어야 해요", nick_bad:"사용할 수 없는 닉네임이에요", no_room:"방을 찾을 수 없어요",
  room_full:"방이 가득 찼어요", practice_end:"연습 종료", rounds_played:"라운드 진행", avg_pts:"평균 점수",
  mts:"개의 세계 건축물 수록", err:"오차", guess_ph:"높이 입력", next_in:"곧 다음 라운드…", start_in:"게임 시작!",
@@ -344,7 +385,12 @@ en:{
  tag:"Guess the height of world landmarks. Battle everyone.", nick:"Nickname (2–12 chars)", daily:"📅 Daily Challenge",
  battle:"⚔️ 1v1 Battle", practice:"🎯 Practice", settings:"⚙️ Settings", quick:"⚡ Quick Match",
  create:"🏠 Create Room", join:"Join", join_lbl:"Join with code",
- battle_note:"Start with 6,000 HP. Each round, the closer guess attacks for the score difference × their own multiplier. Both start at ×1, and every round you win raises your multiplier by +0.5. Max 15 rounds.", rematch:"🔄 Rematch", rematch_bot:"🔄 Play again", rematch_wait:"Waiting for opponent…", rematch_req:"Opponent wants a rematch! Tap to start", opp_gone:"Opponent left", attack:"attack", tie:"Tied round", photo_loading:"Loading photo…", next_mult:"Next round multipliers —", foe:"Opponent", join_fail:"Opponent disconnected. Searching again…",
+ battle_note:"Start with 1,000 HP. Each round, the closer guess deals (difference between both errors in meters) × their multiplier. E.g. your error 20 m, theirs 70 m → they lose 50. Both start at ×1; every round you win adds +0.5 to your multiplier. Max 15 rounds.",
+ nick_chars:"Use letters, numbers, spaces, _ or - only", nick_taken:"That nickname is taken", nick_free:"Nickname available", nick_mine:"Your nickname",
+ recover_q:"Is it yours?", recover_btn:"Restore", recover_ok:"Nickname restored!", recover_bad:"Wrong recovery code", recover_ph:"Recovery code",
+ offline:"Can't reach the server. Check your connection", code_title:"My recovery code", copy_code2:"Copy recovery code",
+ code_note:"You need this code to use this nickname (and its record) on another device or browser. Keep it private.",
+ w:"W", l:"L", d:"D", daily_best:"Daily best", photo_src:"Photo source (Wikimedia Commons)", daily_saved:"Progress saved. You can continue later", rematch:"🔄 Rematch", rematch_bot:"🔄 Play again", rematch_wait:"Waiting for opponent…", rematch_req:"Opponent wants a rematch! Tap to start", opp_gone:"Opponent left", attack:"attack", tie:"Tied round", photo_loading:"Loading photo…", next_mult:"Next round multipliers —", foe:"Opponent", join_fail:"Opponent disconnected. Searching again…",
  matching:"Finding an opponent…", matching_desc:"If no one joins in 30s, you'll face a practice bot",
  room_wait:"Waiting for your friend…", room_desc:"Share this code with a friend", copy_code:"Copy code", copied:"Copied!",
  round:"Round", answer:"Actual height", me:"You", bot_prefix:"", submit_done:"Submitted! Waiting for opponent…",
@@ -353,7 +399,7 @@ en:{
  opp_left:"Opponent left. You win!", share:"Share result", home:"Home", quit:"Quit",
  daily_title:"Daily Challenge", daily_max:"/ 25,000 pts", daily_next:"New puzzle at midnight UTC!",
  daily_done:"You already finished today's challenge", lang:"Language", unit:"Height unit", sound:"Sound", on:"On", off:"Off",
- settings_note:"Changing language also changes mountain names to their official form in that language. Mountains without one keep their original name.",
+ settings_note:"Changing language also changes landmark names where a translation exists.",
  nick_short:"Nickname must be at least 2 characters", nick_bad:"That nickname isn't allowed", no_room:"Room not found",
  room_full:"Room is full", practice_end:"Practice over", rounds_played:"Rounds played", avg_pts:"Avg points",
  mts:"world landmarks", err:"error", guess_ph:"Enter height", next_in:"Next round soon…", start_in:"Game start!",
@@ -369,17 +415,123 @@ const $ = id => document.getElementById(id);
 const MT = window.MOUNTAINS;
 let unit = localStorage.getItem("pk_unit") || "m";
 let sound = localStorage.getItem("pk_sound") !== "0";
-const uid = sessionStorage.getItem("pk_uid") || (()=>{const u=crypto.randomUUID().slice(0,12);sessionStorage.setItem("pk_uid",u);return u})();
 const BAD = ["시발","씨발","씨빨","병신","병1신","개새","존나","좆","자지","보지","니미","걸레","창녀","fuck","shit","bitch","asshole","nigger","nigga","cunt","faggot","porn","sex","dick","pussy","whore","rape"];
 const BOTNAMES = ["설악산다람쥐","셰르파봇","알프스양치기","구름등반가","고도측정기9000","YetiJr","CloudGoat","PeakSeeker"];
 const LAUNCH_UTC = Date.UTC(2026,6,16);
 
-function nickname(){ return ($("nick").value||"").trim(); }
-function nickOk(n){
-  if(n.length<2){ toast(t("nick_short")); return false; }
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function nickname(){ return ($("nick").value||"").trim().replace(/\s+/g," "); }
+const NICK_RE=/^[\p{L}\p{N}_\- ]{2,12}$/u;
+function nickProblem(n){
+  if(n.length<2) return "nick_short";
+  if(!NICK_RE.test(n)) return "nick_chars";
   const low=n.toLowerCase().replace(/[\s_\-.0-9]/g,"");
-  if(BAD.some(b=>low.includes(b))){ toast(t("nick_bad")); return false; }
-  localStorage.setItem("pk_nick",n); return true;
+  if(BAD.some(b=>low.includes(b))) return "nick_bad";
+  return null;
+}
+const nickKey = n => encodeURIComponent(n.trim().toLowerCase()).replace(/\./g,"%2E");
+let myNickKey = localStorage.getItem("pk_nickkey") || null;
+let verifiedKey = null;   // 이번 접속에서 서버로 소유 확인을 마친 닉네임
+let myStats = null;
+function genCode(){ const A="ABCDEFGHJKLMNPQRSTUVWXYZ23456789", b=new Uint8Array(8); crypto.getRandomValues(b); return [...b].map(x=>A[x%32]).join(""); }
+const fmtCode = c => c ? c.slice(0,4)+"-"+c.slice(4) : "—";
+function setMine(n,k){ myNickKey=k; verifiedKey=k; localStorage.setItem("pk_nickkey",k); localStorage.setItem("pk_nick",n); localStorage.setItem("pk_nickname_of_"+k,n); }
+/* 닉네임 차지: ok | taken | offline */
+async function claimNick(n){
+  if(!await online()) return "offline";
+  const k=nickKey(n);
+  try{
+    const o=await get(ref(db,`nicknames/${k}/owner`));
+    if(o.exists() && o.val()!==AUID) return "taken";
+    if(!o.exists()){
+      const code=genCode();
+      await set(ref(db,`nicknames/${k}`),{owner:AUID,code,nick:n});   // 동시에 누가 먼저 가져가면 보안 규칙이 거부
+      localStorage.setItem("pk_code_"+k,code);
+    }
+    setMine(n,k); loadStats(); return "ok";
+  }catch(e){ return "taken"; }
+}
+/* 모드 시작 전 닉네임 확인. needNet=true면 온라인 필수(대결) */
+async function ensureNick(needNet){
+  const n=nickname(), p=nickProblem(n);
+  if(p){ toast(t(p)); return false; }
+  if(!AUID && !needNet){ localStorage.setItem("pk_nick",n); return true; }   // 아직 서버 연결 전: 혼자 하는 모드는 바로 시작
+  const r=await claimNick(n);   // 매번 서버에서 소유 여부 확인 (다른 기기가 복구해 간 경우 대비)
+  if(r==="ok") return true;
+  if(r==="taken"){ toast(t("nick_taken")); nickStatus(); return false; }
+  if(needNet){ toast(t("offline")); return false; }
+  localStorage.setItem("pk_nick",n); return true;   // 혼자 하는 모드는 오프라인이어도 가능
+}
+let nickTimer=null;
+function nickStatus(){
+  clearTimeout(nickTimer);
+  const el=$("nickstat"), n=nickname(); $("recoverrow").style.display="none";
+  el.className="nickstat"; el.textContent="";
+  if(!n) return;
+  const p=nickProblem(n); if(p){ el.className="nickstat bad"; el.textContent=t(p); return; }
+  nickTimer=setTimeout(async()=>{
+    if(!await online()) return;
+    const k=nickKey(n);
+    try{
+      const o=await get(ref(db,`nicknames/${k}/owner`)); if(nickname()!==n) return;
+      if(!o.exists()){ el.className="nickstat ok"; el.textContent="✓ "+t("nick_free"); }
+      else if(o.val()===AUID){ el.className="nickstat ok"; el.textContent="✓ "+t("nick_mine"); if(myNickKey!==k){ setMine(n,k); loadStats(); } }
+      else { el.className="nickstat bad"; el.innerHTML="✗ "+esc(t("nick_taken"))+'<button id="b-showrec">'+esc(t("recover_q"))+"</button>";
+             $("b-showrec").onclick=()=>{ $("recoverrow").style.display="block"; $("recode").focus(); }; }
+    }catch(e){}
+  },350);
+}
+async function recoverNick(){
+  const n=nickname(), code=($("recode").value||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+  if(nickProblem(n)||code.length!==8){ toast(t("recover_bad")); return; }
+  if(!await online()){ toast(t("offline")); return; }
+  const k=nickKey(n);
+  try{
+    await set(ref(db,`nicknames/${k}`),{owner:AUID,code,nick:n});   // 코드가 맞을 때만 보안 규칙이 허용
+    localStorage.setItem("pk_code_"+k,code); setMine(n,k);
+    $("recoverrow").style.display="none"; toast(t("recover_ok")); nickStatus(); loadStats();
+  }catch(e){ toast(t("recover_bad")); }
+}
+/* 복구 코드 보기 (이 기기에 없으면 새로 발급 — 소유자만 가능) */
+async function showMyCode(){
+  const el=$("codeval");
+  if(!myNickKey){ el.textContent="—"; return; }
+  let c=localStorage.getItem("pk_code_"+myNickKey);
+  if(!c && await online()){
+    try{ c=genCode(); await update(ref(db,`nicknames/${myNickKey}`),{owner:AUID,code:c,nick:localStorage.getItem("pk_nick")}); localStorage.setItem("pk_code_"+myNickKey,c); }
+    catch(e){ c=null; }
+  }
+  el.textContent=fmtCode(c);
+  $("codenick").textContent=localStorage.getItem("pk_nickname_of_"+myNickKey)||"";
+}
+/* 닉네임별 기록 */
+async function loadStats(){
+  if(!myNickKey || !await online()) return;
+  try{ const s=await get(ref(db,`stats/${myNickKey}`)); myStats=s.val()||{}; renderStats(); }catch(e){}
+}
+function renderStats(){
+  const s=myStats||{}, el=$("mystats");
+  const parts=[];
+  if(s.games) parts.push(`🏆 ${s.wins||0}${t("w")} ${s.losses||0}${t("l")}`+(s.draws?` ${s.draws}${t("d")}`:""));
+  if(s.best) parts.push(`📅 ${t("daily_best")} ${s.best.toLocaleString()}`);
+  el.textContent=parts.join("  ·  ");
+}
+async function recordBattle(kind){
+  if(!myNickKey || !AUID) return;
+  try{ await update(ref(db,`stats/${myNickKey}`),{games:increment(1),[kind]:increment(1)}); loadStats(); }catch(e){}
+}
+async function recordDaily(dn,res){
+  if(!myNickKey || !AUID) return;
+  try{
+    await set(ref(db,`stats/${myNickKey}/daily/${dn}`),{s:res.s,p:res.p.join(",")});
+    if(!(myStats&&myStats.best>=res.s)) await update(ref(db,`stats/${myNickKey}`),{best:res.s});
+    loadStats();
+  }catch(e){}
+}
+async function serverDaily(dn){
+  if(!myNickKey || !await online()) return null;
+  try{ const s=await get(ref(db,`stats/${myNickKey}/daily/${dn}`)); if(!s.exists()) return null;
+       const v=s.val(); return {s:v.s,p:String(v.p||"").split(",").map(Number)}; }catch(e){ return null; }
 }
 $("nick").value = localStorage.getItem("pk_nick") || "";
 
@@ -396,7 +548,7 @@ function fmtH(mm){ return toUnit(mm).toLocaleString() + " " + unit; }
    라운드 점수 0~5000. 오직 "실제 높이와 몇 m 차이 나는가"로만 계산.
    → 같은 문제에서는 더 가깝게 맞힌 사람이 항상 더 높은 점수 (높게/낮게 찍은 방향은 무관)
    오차 2% 이내 만점, 10%≈4,300점, 30%≈3,200점, 50%≈2,400점 */
-const MAXPTS=5000, START_HP=6000, APP_VER=8;
+const MAXPTS=5000, START_HP=1000, APP_VER=9;
 function calcScore(guessM, actualM){
   if(guessM==null||guessM<=0) return 0;
   const r=Math.abs(guessM-actualM)/actualM;   // 실제 높이 대비 차이(m)의 비율
@@ -410,11 +562,14 @@ function calcScore(guessM, actualM){
    - 비긴 라운드: 둘 다 그대로 */
 const MULT_STEP=0.5, LOSE_RESET=false;
 const nextMult=(m,won,lost)=> won ? m+MULT_STEP : (lost&&LOSE_RESET ? 1 : m);
-/* 라운드 결과: 이긴 쪽이 (점수차 × 이긴 쪽의 현재 배수)만큼 공격, 진 쪽만 체력 감소 */
-function resolveRound(sA,sB,mA,mB){
-  const diff=Math.abs(sA-sB);
-  if(sA>sB) return {a:0,b:Math.round(diff*mA),mA:nextMult(mA,true,false),mB:nextMult(mB,false,true),usedA:mA,usedB:mB};
-  if(sB>sA) return {a:Math.round(diff*mB),b:0,mA:nextMult(mA,false,true),mB:nextMult(mB,true,false),usedA:mA,usedB:mB};
+/* ===== 대결 데미지 =====
+   각자의 오차(m) = |추측 - 실제|. 시간 초과는 0m를 적은 것으로 처리(오차 = 실제 높이).
+   오차가 작은 쪽이 이기고, 두 사람 오차의 차이(m) × 이긴 쪽 배수 만큼 진 쪽 체력이 깎임. (단위가 ft여도 계산은 m) */
+const errOf = (g,act) => (g==null||g<0) ? act : Math.abs(g-act);
+function resolveRound(eA,eB,mA,mB){
+  const diff=Math.abs(eA-eB);
+  if(eA<eB) return {a:0,b:Math.round(diff*mA),mA:nextMult(mA,true,false),mB:nextMult(mB,false,true),usedA:mA,usedB:mB};
+  if(eB<eA) return {a:Math.round(diff*mB),b:0,mA:nextMult(mA,false,true),mB:nextMult(mB,true,false),usedA:mA,usedB:mB};
   return {a:0,b:0,mA,mB,usedA:mA,usedB:mB};
 }
 
@@ -446,7 +601,13 @@ const pickOneBalanced=()=>pickBalanced(Math.random,1)[0];
    모든 건축물은 사진 주소가 데이터(mountains.js)에 미리 들어있고, 전부 사전에 실제 로딩 테스트를 통과한
    Wikimedia Commons(자유 라이선스) 사진만 사용. 게임 중 위키백과 검색을 하지 않으므로 엉뚱한 사진이나
    '사진 없음'이 생기지 않음. 로딩 실패 시: 같은 사진 다른 서버 → 예비 사진 → 처음부터 재시도(끝없이). */
-let photoToken=0;
+let photoToken=0, curPhotoFile=null;
+/* 정답 공개 뒤에만 사진 원본 페이지(저작자·라이선스) 링크를 보여줌 → 플레이 중 높이 검색 방지 */
+function showSrcLink(){
+  const a=$("srclink");
+  if(curPhotoFile){ a.href="https://commons.wikimedia.org/wiki/File:"+curPhotoFile; a.textContent="📷 "+t("photo_src"); a.style.display="inline-block"; }
+  else a.style.display="none";
+}
 const IMG_HOSTS=["https://upload.wikimedia.org","https://thumb.wikimedia.org"];
 function photoURLs(m){
   const out=[];
@@ -492,10 +653,10 @@ function renderPhoto(p){
   }
   const img=new Image(); img.src=p.u; img.className="photo"+(r<1.55?" fit":""); img.draggable=false; img.alt="";
   box.appendChild(img);
-  const a=document.createElement("a");
-  a.className="mtcredit"; a.textContent=(L==="ko"?"사진: Wikimedia Commons":"Photo: Wikimedia Commons");
-  a.href="https://commons.wikimedia.org/wiki/File:"+p.file; a.target="_blank"; a.rel="noopener";
+  const a=document.createElement("span");
+  a.className="mtcredit"; a.textContent="© Wikimedia Commons";
   box.appendChild(a);
+  curPhotoFile=p.file;
 }
 /* 사진을 띄우고, 실제로 화면에 나왔을 때 resolve(true) */
 function showPhoto(m,token){
@@ -551,6 +712,7 @@ function applyI18n(){
   $("b-copycode").textContent=t("copy_code"); $("b-quitgame").textContent=t("quit");
   $("b-share-battle").textContent=t("share"); $("b-share-daily").textContent=t("share");
   $("guess").placeholder=t("guess_ph"); $("unitlbl").textContent=unit;
+  $("b-recover").textContent=t("recover_btn"); $("recode").placeholder=t("recover_ph"); renderStats();
   $("mtcount").textContent="🏔 "+MT.length.toLocaleString()+" "+t("mts");
   $("langsel").value=L;
   $("u-m").classList.toggle("on",unit==="m"); $("u-ft").classList.toggle("on",unit==="ft");
@@ -563,6 +725,7 @@ let timerRAF = null, revealTimer = null, unsub = [], matchTimer = null;
 
 function cleanupGame(){
   cancelAnimationFrame(timerRAF); clearTimeout(revealTimer); clearTimeout(matchTimer);
+  photoToken++; curPhotoFile=null; $("srclink").style.display="none";
   unsub.forEach(u=>u()); unsub=[];
   const g=G; G=null;
   if(g && g.fb){
@@ -581,7 +744,7 @@ function cleanupGame(){
 }
 
 function showMountain(m){
-  photoToken++;
+  photoToken++; curPhotoFile=null; $("srclink").style.display="none";
   const shown=showPhoto(m,photoToken);
   $("mtflag").src = flagURL(m[1]);
   $("mtname").textContent = mtName(m);
@@ -622,25 +785,44 @@ function countUp(el,target){
   requestAnimationFrame(step);
 }
 function cmpBox(who,val,sub,isPts){
-  return `<div class="cmpbox"><div class="cmpwho">${who}</div><div class="cmpval">${val}</div><div class="cmpdmg${isPts?" pts":""}">${sub}</div></div>`;
+  return `<div class="cmpbox"><div class="cmpwho">${esc(who)}</div><div class="cmpval">${val}</div><div class="cmpdmg${isPts?" pts":""}">${sub}</div></div>`;
 }
 
 /* ================= 싱글 (데일리 / 연습) ================= */
 const DAILY_KEY="pk_d2_";   // 점수 체계 변경(25,000점제)으로 키 교체
-function startSolo(mode){
-  const n=nickname(); if(!nickOk(n)) return;
+const DPROG="pk_dprog_";      // 데일리 진행상황 (나갔다가 이어하기)
+async function startSolo(mode){
+  if(!await ensureNick(false)) return;
   const dn=dailyNum();
+  let prog=null;
   if(mode==="daily"){
     const saved=localStorage.getItem(DAILY_KEY+dn);
     if(saved){ showDailyResult(JSON.parse(saved),dn); return; }
+    const srv=await serverDaily(dn);                 // 다른 기기에서 이미 했는지 (닉네임 기준)
+    if(srv){ localStorage.setItem(DAILY_KEY+dn,JSON.stringify(srv)); showDailyResult(srv,dn); return; }
+    try{ prog=JSON.parse(localStorage.getItem(DPROG+dn)||"null"); }catch(e){ prog=null; }
+    // 사진을 본 뒤 창을 닫았던 라운드는 0점 처리 (닫고 검색한 뒤 다시 들어오는 것 방지)
+    if(prog && prog.seen===prog.r){ prog.p.push(0); prog.r++; prog.seen=0; }
   }
-  G={mode, fb:false, round:1, pts:[], guesses:[], used:new Set(), next:null,
+  G={mode, fb:false, round:prog?prog.r:1, pts:prog?prog.p:[], guesses:[], used:new Set(), next:null,
      mts: mode==="daily" ? pickBalancedSeeded(dn*7919+13,5) : null,
      total: mode==="daily" ? 5 : Infinity };
-  if(G.mts) preloadPhotos(G.mts.map(i=>MT[i]));
+  if(mode==="daily" && G.round>5){ finishDaily(); return; }
+  if(G.mts) preloadPhotos(G.mts.slice(G.round-1).map(i=>MT[i]));
   $("hparea").style.display="none"; $("multbadge").style.display="none";
-  $("b-quitgame").style.display = mode==="practice" ? "block" : "none";
+  $("b-quitgame").style.display="block";
   screen("game"); soloRound();
+}
+function saveDailyProg(seen){
+  if(!G||G.mode!=="daily") return;
+  localStorage.setItem(DPROG+dailyNum(),JSON.stringify({r:G.round,p:G.pts,seen:seen?G.round:0}));
+}
+function finishDaily(){
+  const dn=dailyNum(), res={s:G.pts.reduce((a,b)=>a+b,0),p:G.pts.slice(0,5)};
+  localStorage.setItem(DAILY_KEY+dn,JSON.stringify(res));
+  localStorage.removeItem(DPROG+dn);
+  recordDaily(dn,res);
+  showDailyResult(res,dn);
 }
 function soloRound(){
   let idx;
@@ -655,6 +837,7 @@ function soloRound(){
   }
   G.cur=idx;
   const m=MT[idx];
+  if(G.mode==="daily") saveDailyProg(true);
   $("roundtxt").textContent = t("round")+" "+G.round+(G.mode==="daily"?" / 5":"");
   const sum=G.pts.reduce((a,b)=>a+b,0);
   $("scoretxt").textContent = G.mode==="practice" && G.pts.length
@@ -668,19 +851,18 @@ function soloSubmit(raw){
   const guessM = raw==null?null:fromUnit(raw);
   const pts=calcScore(guessM,actual);
   G.pts.push(pts); G.guesses.push(guessM);
-  $("guessarea").style.display="none"; $("revealarea").style.display="block";
+  if(G.mode==="daily"){ G.round++; saveDailyProg(false); G.round--; }
+  $("guessarea").style.display="none"; $("revealarea").style.display="block"; showSrcLink();
   countUp($("altnum"),toUnit(actual));
   const err = guessM==null?t("timeout"):t("err")+" "+Math.abs(toUnit(actual)-toUnit(guessM)).toLocaleString()+" "+unit;
   $("cmparea").innerHTML=cmpBox(t("me"),guessM==null?"—":fmtH(guessM),err+" · +"+pts.toLocaleString()+t("pts"),true);
   $("nextmsg").textContent=t("next_in");
   sndReveal(pts>=3500);
   revealTimer=setTimeout(()=>{
+    if(!G) return;
     G.locked=false; G.round++;
-    if(G.mode==="daily"&&G.round>5){
-      const res={s:G.pts.reduce((a,b)=>a+b,0),p:G.pts};
-      localStorage.setItem(DAILY_KEY+dailyNum(),JSON.stringify(res));
-      showDailyResult(res,dailyNum());
-    } else soloRound();
+    if(G.mode==="daily"&&G.round>5) finishDaily();
+    else soloRound();
   },3200);
 }
 const emOf=p=>p>=4500?"🏔️":p>=3500?"⛰️":p>=2000?"🗻":"🪨";
@@ -721,18 +903,18 @@ function setMult(me,foe){
 }
 function multNote(me,foe){ return t("next_mult")+" "+t("me")+" "+fmtM(me||1)+" · "+t("foe")+" "+fmtM(foe||1); }
 /* 비교 박스: 추측값 · 라운드 점수(+) · 공격/피해 */
-function cmpBattle(who,guessM,actual,score,taken,dealt,usedMult){
+function cmpBattle(who,guessM,actual,taken,dealt,usedMult){
   const guessStr = guessM==null||guessM<0 ? "—" : fmtH(guessM);
   const errStr = guessM==null||guessM<0 ? t("timeout") : t("err")+" "+Math.abs(toUnit(actual)-toUnit(guessM)).toLocaleString()+" "+unit;
   const line = dealt>0 ? `<div class="cmpdmg pts">⚔️ ${dealt.toLocaleString()} ${t("attack")} (${fmtM(usedMult||1)})</div>`
              : taken>0 ? `<div class="cmpdmg">-${taken.toLocaleString()} HP</div>`
              : `<div class="cmpdmg" style="color:var(--dim)">${t("tie")}</div>`;
-  return `<div class="cmpbox"><div class="cmpwho">${who}</div><div class="cmpval">${guessStr}</div><div class="cmpwho">${errStr}</div><div class="cmppts">+${score.toLocaleString()}${t("pts")}</div>${line}</div>`;
+  return `<div class="cmpbox"><div class="cmpwho">${esc(who)}</div><div class="cmpval">${guessStr}</div><div class="cmppts" style="color:var(--ice)">${errStr}</div>${line}</div>`;
 }
 
 /* --- 봇 대결 (오프라인) --- */
 function startBotGame(){
-  const myNick=localStorage.getItem("pk_nick");
+  const myNick=localStorage.getItem("pk_nick")||nickname();
   const foe=BOTNAMES[Math.floor(Math.random()*BOTNAMES.length)];
   G={mode:"bot",fb:false,round:1,myHP:START_HP,foeHP:START_HP,myMult:1,foeMult:1,foeNick:foe,
      mts:pickBalancedSeeded(Math.floor(Math.random()*1e9),15)};
@@ -761,16 +943,16 @@ function botReveal(){
   if(!G) return;
   cancelAnimationFrame(timerRAF);
   const m=MT[G.mts[G.round-1]],actual=m[2];
-  const sMe=calcScore(G.myGuess,actual), sFoe=calcScore(G.botGuess,actual);
-  const d=resolveRound(sMe,sFoe,G.myMult,G.foeMult);
+  const eMe=errOf(G.myGuess,actual), eFoe=errOf(G.botGuess,actual);
+  const d=resolveRound(eMe,eFoe,G.myMult,G.foeMult);
   G.myHP-=d.a; G.foeHP-=d.b; G.myMult=d.mA; G.foeMult=d.mB;
   $("guessarea").style.display="none"; $("revealarea").style.display="block";
   countUp($("altnum"),toUnit(actual)); setHP(G.myHP,G.foeHP);
   $("cmparea").innerHTML =
-    cmpBattle(t("me"),G.myGuess,actual,sMe,d.a,d.b,d.usedA) +
-    cmpBattle(G.foeNick,G.botGuess,actual,sFoe,d.b,d.a,d.usedB);
-  setMult(G.myMult,G.foeMult);
-  sndReveal(sMe>=sFoe);
+    cmpBattle(t("me"),G.myGuess,actual,d.a,d.b,d.usedA) +
+    cmpBattle(G.foeNick,G.botGuess,actual,d.b,d.a,d.usedB);
+  setMult(G.myMult,G.foeMult); showSrcLink();
+  sndReveal(eMe<=eFoe);
   const dead=G.myHP<=0||G.foeHP<=0, last=G.round>=15;
   $("nextmsg").textContent = dead||last ? "" : multNote(G.myMult,G.foeMult);
   revealTimer=setTimeout(()=>{
@@ -803,6 +985,7 @@ function endBattle(myHP,foeHP,foeNick,walkover,mode){
   rb.textContent = mode==="bot" ? t("rematch_bot") : t("rematch");
   $("rematchmsg").textContent = walkover ? t("opp_gone") : "";
   draw?0:win?sndWin():sndLose();
+  if(mode==="net") recordBattle(draw?"draws":win?"wins":"losses");
   screen("result");
 }
 $("b-rematch").onclick=()=>{
@@ -824,9 +1007,18 @@ const ROOMVER=()=>window.MOUNTAINS_VERSION*100+APP_VER;   // 데이터·규칙�
    Firebase 트랜잭션은 첫 실행 때 로컬값(대개 빈 값)으로 돌기 때문에,
    빈 값에서 '중단'하지 않고 항상 값을 반환해야 서버값으로 재실행됨 (이전 버전의 매칭 실패 원인) */
 const SLOT=()=>ref(db,"queue/_slot");
+/* 1시간 넘게 방치된 방 청소 (둘 다 창을 닫아 남은 방) — 한 번에 최대 10개 */
+let lastSweep=0;
+function sweepOldRooms(){
+  if(Date.now()-lastSweep<600000) return; lastSweep=Date.now();
+  get(query(ref(db,"rooms"),orderByChild("created"),endAt(now()-3600000),limitToFirst(10)))
+    .then(s=>s.forEach(c=>{ remove(c.ref).catch(()=>{}); })).catch(()=>{});
+}
 const SLOT_FRESH=35000;
 async function quickMatch(startTs){
-  const n=nickname(); if(!nickOk(n)) return;
+  if(!await ensureNick(true)) return;
+  const n=nickname();
+  sweepOldRooms();
   startTs=startTs||Date.now();
   cleanupGame();
   $("waittitle").textContent=t("matching"); $("waitdesc").textContent=t("matching_desc");
@@ -890,7 +1082,7 @@ async function joinQuickRoom(roomId,n,me,startTs){
   const s=await get(ref(db,"rooms/"+roomId));
   if(G!==me) return;
   if(!s.exists()||s.val().ver!==ROOMVER()){ quickMatch(startTs); return; }
-  await update(ref(db,`rooms/${roomId}/players/${uid}`),{nick:n,hp:START_HP});
+  await update(ref(db,`rooms/${roomId}`),{[`members/${AUID}`]:true,[`players/${uid}`]:{nick:n,hp:START_HP}});
   onDisconnect(ref(db,`rooms/${roomId}/players/${uid}/left`)).set(true);
   if(G!==me) return;
   enterRoom(roomId,false,{quick:true,startTs});
@@ -901,13 +1093,15 @@ async function createRoom(roomId,nick,quick){
   await set(ref(db,"rooms/"+roomId),{
     created:now(), host:uid, ver:ROOMVER(), quick:!!quick, game:1,
     mts:pickBalancedSeeded(Math.floor(Math.random()*1e9),15),
+    members:{[AUID]:true},
     players:{[uid]:{nick,hp:START_HP}},
     state:{phase:"lobby",round:0}
   });
   onDisconnect(ref(db,`rooms/${roomId}/players/${uid}/left`)).set(true);
 }
 async function createFriendRoom(){
-  const n=nickname(); if(!nickOk(n)) return;
+  if(!await ensureNick(true)) return;
+  const n=nickname();
   cleanupGame();
   const roomId=CODE();
   await createRoom(roomId,n,false);
@@ -919,7 +1113,8 @@ async function createFriendRoom(){
   enterRoom(roomId,true,{});
 }
 async function joinRoom(){
-  const n=nickname(); if(!nickOk(n)) return;
+  if(!await ensureNick(true)) return;
+  const n=nickname();
   const roomId=($("joincode").value||"").trim().toUpperCase();
   const s=await get(ref(db,"rooms/"+roomId));
   if(!s.exists()){toast(t("no_room"));return;}
@@ -928,7 +1123,7 @@ async function joinRoom(){
   if(active.length>=2){toast(t("room_full"));return;}
   if(room.ver!==ROOMVER()){toast(t("version_err"));return;}
   cleanupGame();
-  await update(ref(db,`rooms/${roomId}/players/${uid}`),{nick:n,hp:START_HP,left:null});
+  await update(ref(db,`rooms/${roomId}`),{[`members/${AUID}`]:true,[`players/${uid}`]:{nick:n,hp:START_HP}});
   onDisconnect(ref(db,`rooms/${roomId}/players/${uid}/left`)).set(true);
   enterRoom(roomId,false,{});
 }
@@ -1012,7 +1207,7 @@ async function hostRematch(room){
   };
   Object.keys(room.players).forEach(u=>{
     upd[`players/${u}/hp`]=START_HP;
-    ["lastG","lastS","lastD","lastA","lastM","mult"].forEach(k=>upd[`players/${u}/${k}`]=null);
+    ["lastG","lastE","lastD","lastA","lastM","mult"].forEach(k=>upd[`players/${u}/${k}`]=null);
   });
   try{ await update(G.roomRef,upd); }catch(e){ if(G) G.resetting=false; }
 }
@@ -1054,16 +1249,16 @@ async function hostAdvance(){
     const allIn=uids.every(u=>gs[u]!==undefined);
     if(!allIn && now()<room.state.deadline+600){g0.advancing=false;return;}
     const actual=MT[room.mts[r-1]][2];
-    const sc={}; uids.forEach(u=>{ const g=gs[u]===undefined||gs[u]<0?null:gs[u]; sc[u]={g,s:calcScore(g,actual)}; });
+    const sc={}; uids.forEach(u=>{ const g=gs[u]===undefined||gs[u]<0?null:gs[u]; sc[u]={g,e:errOf(g,actual)}; });
     const upd={};
     if(uids.length===2){
-      const [a,b]=uids, d=resolveRound(sc[a].s,sc[b].s,room.players[a].mult||1,room.players[b].mult||1);
+      const [a,b]=uids, d=resolveRound(sc[a].e,sc[b].e,room.players[a].mult||1,room.players[b].mult||1);
       upd[`players/${a}/hp`]=room.players[a].hp-d.a; upd[`players/${a}/lastD`]=d.a; upd[`players/${a}/lastA`]=d.b;
       upd[`players/${b}/hp`]=room.players[b].hp-d.b; upd[`players/${b}/lastD`]=d.b; upd[`players/${b}/lastA`]=d.a;
       upd[`players/${a}/lastM`]=d.usedA; upd[`players/${a}/mult`]=d.mA;
       upd[`players/${b}/lastM`]=d.usedB; upd[`players/${b}/mult`]=d.mB;
     }
-    uids.forEach(u=>{ upd[`players/${u}/lastG`]=sc[u].g===null?-1:sc[u].g; upd[`players/${u}/lastS`]=sc[u].s; });
+    uids.forEach(u=>{ upd[`players/${u}/lastG`]=sc[u].g===null?-1:sc[u].g; upd[`players/${u}/lastE`]=sc[u].e; });
     upd["state/phase"]="reveal"; upd["state/until"]=now()+4500;
     await update(g0.roomRef,upd);
     setTimeout(async()=>{
@@ -1086,11 +1281,11 @@ function netRevealPhase(room,me,foe){
   $("guessarea").style.display="none"; $("revealarea").style.display="block";
   countUp($("altnum"),toUnit(actual)); setHP(me.hp,foe.hp);
   $("cmparea").innerHTML =
-    cmpBattle(t("me"),me.lastG,actual,me.lastS||0,me.lastD||0,me.lastA||0,me.lastM) +
-    cmpBattle(foe.nick,foe.lastG,actual,foe.lastS||0,foe.lastD||0,foe.lastA||0,foe.lastM);
-  setMult(me.mult,foe.mult);
+    cmpBattle(t("me"),me.lastG,actual,me.lastD||0,me.lastA||0,me.lastM) +
+    cmpBattle(foe.nick,foe.lastG,actual,foe.lastD||0,foe.lastA||0,foe.lastM);
+  setMult(me.mult,foe.mult); showSrcLink();
   $("nextmsg").textContent=multNote(me.mult,foe.mult);
-  sndReveal((me.lastS||0)>=(foe.lastS||0));
+  sndReveal((me.lastE||0)<=(foe.lastE||0));
   const g0=G;
   setTimeout(()=>{ if(G===g0&&G.phase==="reveal") G.phase="idle"; },4300);
 }
@@ -1115,13 +1310,24 @@ function share(text){
 /* ================= 바인딩 ================= */
 $("b-daily").onclick=()=>startSolo("daily");
 $("b-practice").onclick=()=>startSolo("practice");
-$("b-battle").onclick=()=>{ const n=nickname(); if(nickOk(n)) screen("battle"); };
-$("b-settings").onclick=()=>screen("settings");
+$("b-battle").onclick=async()=>{ if(await ensureNick(true)) screen("battle"); };
+$("b-settings").onclick=()=>{ showMyCode(); screen("settings"); };
+$("nick").addEventListener("input",nickStatus);
+$("b-recover").onclick=recoverNick;
+$("recode").addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g,"");});
+$("b-copyrc").onclick=()=>{ const c=$("codeval").textContent.replace("-",""); if(c.length===8) navigator.clipboard.writeText(c).then(()=>toast(t("copied"))); };
 $("b-quick").onclick=()=>quickMatch();
 $("b-create").onclick=createFriendRoom;
 $("b-join").onclick=joinRoom;
 $("b-cancelwait").onclick=()=>{cleanupGame();screen("battle");};
 $("b-quitgame").onclick=()=>{
+  if(G&&G.mode==="daily"){
+    // 답을 내기 전에 나가면 이번 라운드는 0점, 나머지는 나중에 이어서
+    if(!G.locked){ G.pts.push(0); G.round++; }
+    else G.round++;
+    if(G.round>5){ finishDaily(); return; }
+    saveDailyProg(false); toast(t("daily_saved")); cleanupGame(); screen("home"); return;
+  }
   if(G&&G.mode==="practice"&&G.pts.length){
     const avg=Math.round(G.pts.reduce((a,b)=>a+b,0)/G.pts.length);
     toast(t("practice_end")+" · "+t("rounds_played")+" "+G.pts.length+" · "+t("avg_pts")+" "+avg);
@@ -1148,6 +1354,13 @@ $("snd-off").onclick=()=>{sound=false;localStorage.setItem("pk_sound","0");apply
 $("joincode").addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"");});
 
 applyI18n();
+/* 시작 시: 이 기기가 가진 닉네임이 아직 내 것인지 확인 → 기록 불러오기 */
+authReady.then(async()=>{
+  if(myNickKey){
+    try{ const o=await get(ref(db,`nicknames/${myNickKey}/owner`)); if(o.val()!==AUID){ myNickKey=null; localStorage.removeItem("pk_nickkey"); } else verifiedKey=myNickKey; }catch(e){}
+  }
+  loadStats(); if(nickname()) nickStatus();
+});
 if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>
