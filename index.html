@@ -302,6 +302,7 @@ select option{color:#000}
   <div class="center" style="color:var(--dim);font-size:13px" data-i="daily_max"></div>
   <div class="emrow" id="dailyemoji"></div>
   <div class="card" id="dailydetail" style="font-size:14px;line-height:2"></div>
+  <div class="card" id="dailyrank" style="display:none;font-size:14px;line-height:1.9"></div>
   <button class="btn" id="b-share-daily"></button>
   <div class="adslot" id="ad-daily"></div>
   <button class="btn ghost" data-go="home" data-i="home"></button>
@@ -360,7 +361,7 @@ select option{color:#000}
 /* ================= Firebase ================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, set, get, update, remove, onValue, off, onDisconnect, runTransaction,
-         increment, query, orderByChild, endAt, limitToFirst, goOffline, goOnline }
+         increment, query, orderByChild, endAt, limitToFirst, limitToLast, goOffline, goOnline }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, EmailAuthProvider,
   linkWithCredential, reauthenticateWithCredential, updatePassword, signOut }
@@ -794,6 +795,8 @@ zh:{
 },
 };
 for (const l in STR5) STR[l] = STR5[l];
+const RANKT={ko:"오늘의 순위",en:"Today's top 10",es:"Top 10 de hoy",pt:"Top 10 de hoje",ja:"今日のトップ10",de:"Heutige Top 10",fr:"Top 10 du jour",it:"Top 10 di oggi",ru:"Топ-10 дня",tr:"Bugünün ilk 10'u",pl:"Dzisiejsza dziesiątka",zh:"今日前 10 名"};
+for (const l in RANKT) STR[l].rank_title = RANKT[l];
 
 const t = k => (STR[L][k] ?? STR.en[k]);
 
@@ -1001,6 +1004,25 @@ async function recordDaily(dn,res){
     if(!(myStats&&myStats.best>=res.s)) await update(ref(db,`stats/${myNickKey}`),{best:res.s});
     loadStats();
   }catch(e){}
+  // 오늘의 순위에 등록 (보안 규칙이 아직 없으면 조용히 건너뜀)
+  try{ await set(ref(db,`dailyrank/${dn}/${myNickKey}`),{s:res.s,nick:localStorage.getItem("pk_nick")||""}); }catch(e){}
+  loadRank(dn,res.s);
+}
+/* 오늘의 순위: 상위 10명 + 내 위치 */
+async function loadRank(dn,myScore){
+  const box=$("dailyrank");
+  if(!await online()) return;
+  try{
+    const snap=await get(query(ref(db,`dailyrank/${dn}`),orderByChild("s"),limitToLast(10)));
+    const rows=[]; snap.forEach(c=>{ const v=c.val(); if(v&&typeof v.s==="number") rows.push({k:c.key,s:v.s,n:v.nick}); });
+    if(!rows.length){ box.style.display="none"; return; }
+    rows.sort((a,b)=>b.s-a.s);
+    box.innerHTML=`<b>🏆 ${esc(t("rank_title"))}</b><br>`+rows.map((r,i)=>{
+      const me=r.k===myNickKey;
+      return `${me?"<b style='color:var(--glow)'>":""}${["🥇","🥈","🥉"][i]||(i+1)+"."} ${esc(r.n||"?")} — ${r.s.toLocaleString()}${t("pts")}${me?"</b>":""}`;
+    }).join("<br>");
+    box.style.display="block";
+  }catch(e){ box.style.display="none"; }
 }
 async function serverDaily(dn){
   if(!myNickKey || !await online()) return null;
@@ -1373,6 +1395,7 @@ function showDailyResult(res,dn){
   const st=dailyStreak();
   $("b-share-daily").onclick=()=>share(STR[L].share_daily(dn,res.s,res.p.map(emOf).join(""))+(st>=2?"🔥 "+t("streak_n")(st)+"\n":"")+cleanURL()+"?c="+res.s+"&d="+dn);
   screen("daily-result"); showAd("daily"); adBetween("daily_done");
+  $("dailyrank").style.display="none"; loadRank(dn,res.s);
 }
 
 /* ================= 1대1 대결 공통 UI ================= */

@@ -33,6 +33,20 @@
       }
     },
 
+    "dailyrank": {
+      "$dn": {
+        ".read": true,
+        ".indexOn": ["s"],
+        "$k": {
+          ".write": "auth != null && !data.exists() && root.child('nicknames').child($k).child('owner').val() === auth.uid",
+          ".validate": "newData.hasChildren(['s', 'nick']) && newData.child('s').isNumber() && newData.child('s').val() >= 0 && newData.child('s').val() <= 25000 && newData.child('s').val() === root.child('stats').child($k).child('daily').child($dn).child('s').val() && newData.child('nick').isString() && newData.child('nick').val().length <= 12",
+          "s": { ".validate": true },
+          "nick": { ".validate": true },
+          "$other": { ".validate": false }
+        }
+      }
+    },
+
     "queue": {
       "_slot": {
         ".read": "auth != null",
