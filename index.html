@@ -67,6 +67,13 @@ input:focus{border-color:var(--glow)}
 .btn:disabled{opacity:.4;cursor:default}
 .row{display:flex;gap:10px}.row .btn{flex:1}
 .note{font-size:12.5px;color:var(--dim);line-height:1.55;margin-top:8px}
+.chal{background:rgba(255,142,110,.12);border:1px solid rgba(255,142,110,.45);border-radius:16px;padding:12px 14px;margin:10px 0;text-align:center;font-size:14px;line-height:1.5}
+.chal .btn{margin:8px 0 0}
+.adslot{margin:14px 0;text-align:center;min-height:0}
+.adslot:empty{display:none}
+.footlinks{text-align:center;margin-top:18px;font-size:12px;color:var(--dim);line-height:2}
+.footlinks a{color:var(--dim);text-decoration:none;margin:0 6px}
+.footlinks a:hover{text-decoration:underline}
 .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0}
 
 /* 대전 화면 */
@@ -190,6 +197,7 @@ select option{color:#000}
     </div>
   </div>
   <div class="center mystats" id="mystats"></div>
+  <div class="chal" id="chalbox" style="display:none"><div id="chaltxt"></div><button class="btn small" id="b-chal"></button></div>
   <button class="btn" id="b-daily"></button>
   <button class="btn" id="b-battle"></button>
   <button class="btn ghost" id="b-practice"></button>
@@ -197,6 +205,8 @@ select option{color:#000}
   <div class="center" style="margin-top:14px">
     <span class="pill" id="mtcount"></span>
   </div>
+  <div class="adslot" id="ad-home"></div>
+  <div class="footlinks" id="footlinks"></div>
 </section>
 
 <!-- 대결 로비 -->
@@ -221,6 +231,7 @@ select option{color:#000}
   <div class="center" id="waitdesc" style="color:var(--dim);font-size:14px"></div>
   <div class="codebox" id="roomcodebox" style="display:none"></div>
   <button class="btn ghost" id="b-copycode" style="display:none"></button>
+  <button class="btn ghost" id="b-invite" style="display:none"></button>
 </section>
 
 <!-- 게임(공용: 대결/데일리/연습) -->
@@ -280,6 +291,7 @@ select option{color:#000}
   <button class="btn" id="b-rematch"></button>
   <div class="rematchmsg" id="rematchmsg"></div>
   <button class="btn ghost" id="b-share-battle"></button>
+  <div class="adslot" id="ad-result"></div>
   <button class="btn ghost" data-go="home" data-i="home"></button>
 </section>
 
@@ -291,6 +303,7 @@ select option{color:#000}
   <div class="emrow" id="dailyemoji"></div>
   <div class="card" id="dailydetail" style="font-size:14px;line-height:2"></div>
   <button class="btn" id="b-share-daily"></button>
+  <div class="adslot" id="ad-daily"></div>
   <button class="btn ghost" data-go="home" data-i="home"></button>
   <p class="note center" data-i="daily_next"></p>
 </section>
@@ -308,6 +321,11 @@ select option{color:#000}
         <option value="ja">日本語</option>
         <option value="de">Deutsch</option>
         <option value="fr">Français</option>
+        <option value="it">Italiano</option>
+        <option value="ru">Русский</option>
+        <option value="tr">Türkçe</option>
+        <option value="pl">Polski</option>
+        <option value="zh">繁體中文</option>
       </select>
     </div>
     <div class="setrow"><span data-i="unit"></span>
@@ -337,6 +355,7 @@ select option{color:#000}
 <div class="toast" id="toast"></div>
 
 <script src="mountains.js"></script>
+<script src="photos.js" onerror="window.PHOTOS={};window.CREDITS={}"></script>
 <script type="module">
 /* ================= Firebase ================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
@@ -425,7 +444,7 @@ ko:{
  nick_short:"닉네임은 2자 이상이어야 해요", nick_bad:"사용할 수 없는 닉네임이에요", no_room:"방을 찾을 수 없어요",
  room_full:"방이 가득 찼어요", practice_end:"연습 종료", rounds_played:"라운드 진행", avg_pts:"평균 점수",
  mts:"개의 세계 건축물 수록", err:"오차", guess_ph:"높이 입력", next_in:"곧 다음 라운드…", start_in:"게임 시작!",
- share_daily:(n,s,e)=>`Peakle 데일리 #${n}\n⛰️ ${s.toLocaleString()} / 25,000점\n${e}\n`,
+ share_daily:(n,s,e)=>`Peakle 데일리 #${n}\n🏙️ ${s.toLocaleString()} / 25,000점\n${e}\n`,
  share_battle:(w,me,foe)=>`Peakle ⚔️ 1대1 배틀 ${w}\n${me} vs ${foe}\n`,
  version_err:"상대와 게임 버전이 달라요. 새로고침 해주세요!",
 },
@@ -451,7 +470,7 @@ en:{
  nick_short:"Nickname must be at least 2 characters", nick_bad:"That nickname isn't allowed", no_room:"Room not found",
  room_full:"Room is full", practice_end:"Practice over", rounds_played:"Rounds played", avg_pts:"Avg points",
  mts:"world landmarks", err:"error", guess_ph:"Enter height", next_in:"Next round soon…", start_in:"Game start!",
- share_daily:(n,s,e)=>`Peakle Daily #${n}\n⛰️ ${s.toLocaleString()} / 25,000 pts\n${e}\n`,
+ share_daily:(n,s,e)=>`Peakle Daily #${n}\n🏙️ ${s.toLocaleString()} / 25,000 pts\n${e}\n`,
  share_battle:(w,me,foe)=>`Peakle ⚔️ 1v1 Battle — ${w}\n${me} vs ${foe}\n`,
  version_err:"Game version mismatch with opponent. Please refresh!",
 },
@@ -477,7 +496,7 @@ es:{
  nick_short:"El apodo debe tener al menos 2 caracteres", nick_bad:"Ese apodo no está permitido", no_room:"Sala no encontrada",
  room_full:"La sala está llena", practice_end:"Fin de la práctica", rounds_played:"Rondas jugadas", avg_pts:"Promedio",
  mts:"monumentos del mundo", err:"error", guess_ph:"Escribe la altura", next_in:"Próxima ronda en breve…", start_in:"¡Empieza la partida!",
- share_daily:(n,s,e)=>`Peakle Reto diario #${n}\n⛰️ ${s.toLocaleString("es")} / 25.000 pts\n${e}\n`,
+ share_daily:(n,s,e)=>`Peakle Reto diario #${n}\n🏙️ ${s.toLocaleString("es")} / 25.000 pts\n${e}\n`,
  share_battle:(w,me,foe)=>`Peakle ⚔️ Duelo 1 vs 1 — ${w}\n${me} vs ${foe}\n`,
  version_err:"Tu versión del juego es distinta a la del rival. ¡Recarga la página!",
 },
@@ -503,7 +522,7 @@ pt:{
  nick_short:"O apelido precisa ter pelo menos 2 caracteres", nick_bad:"Esse apelido não é permitido", no_room:"Sala não encontrada",
  room_full:"A sala está cheia", practice_end:"Fim do treino", rounds_played:"Rodadas jogadas", avg_pts:"Média",
  mts:"monumentos do mundo", err:"erro", guess_ph:"Digite a altura", next_in:"Próxima rodada já já…", start_in:"Começou a partida!",
- share_daily:(n,s,e)=>`Peakle Desafio diário #${n}\n⛰️ ${s.toLocaleString("pt-BR")} / 25.000 pts\n${e}\n`,
+ share_daily:(n,s,e)=>`Peakle Desafio diário #${n}\n🏙️ ${s.toLocaleString("pt-BR")} / 25.000 pts\n${e}\n`,
  share_battle:(w,me,foe)=>`Peakle ⚔️ Duelo 1 x 1 — ${w}\n${me} vs ${foe}\n`,
  version_err:"Sua versão do jogo é diferente da do adversário. Atualize a página!",
 },
@@ -529,7 +548,7 @@ ja:{
  nick_short:"ニックネームは2文字以上にしてください", nick_bad:"そのニックネームは使えません", no_room:"ルームが見つかりません",
  room_full:"ルームは満員です", practice_end:"練習終了", rounds_played:"プレイしたラウンド", avg_pts:"平均点",
  mts:"件の世界の建築物を収録", err:"誤差", guess_ph:"高さを入力", next_in:"まもなく次のラウンド…", start_in:"ゲームスタート!",
- share_daily:(n,s,e)=>`Peakle デイリー #${n}\n⛰️ ${s.toLocaleString("ja")} / 25,000点\n${e}\n`,
+ share_daily:(n,s,e)=>`Peakle デイリー #${n}\n🏙️ ${s.toLocaleString("ja")} / 25,000点\n${e}\n`,
  share_battle:(w,me,foe)=>`Peakle ⚔️ 1対1バトル ${w}\n${me} vs ${foe}\n`,
  version_err:"相手とゲームのバージョンが違います。ページを再読み込みしてください!",
 },
@@ -555,7 +574,7 @@ de:{
  nick_short:"Der Spitzname braucht mindestens 2 Zeichen", nick_bad:"Dieser Spitzname ist nicht erlaubt", no_room:"Raum nicht gefunden",
  room_full:"Der Raum ist voll", practice_end:"Training beendet", rounds_played:"Gespielte Runden", avg_pts:"Ø Punkte",
  mts:"Bauwerke der Welt", err:"Fehler", guess_ph:"Höhe eingeben", next_in:"Gleich geht's weiter…", start_in:"Los geht's!",
- share_daily:(n,s,e)=>`Peakle Tägliche Challenge #${n}\n⛰️ ${s.toLocaleString("de")} / 25.000 Pkt.\n${e}\n`,
+ share_daily:(n,s,e)=>`Peakle Tägliche Challenge #${n}\n🏙️ ${s.toLocaleString("de")} / 25.000 Pkt.\n${e}\n`,
  share_battle:(w,me,foe)=>`Peakle ⚔️ 1-gegen-1-Duell — ${w}\n${me} vs ${foe}\n`,
  version_err:"Deine Spielversion passt nicht zu der deines Gegners. Bitte Seite neu laden!",
 },
@@ -581,17 +600,17 @@ fr:{
  nick_short:"Le pseudo doit contenir au moins 2 caractères", nick_bad:"Ce pseudo n'est pas autorisé", no_room:"Salon introuvable",
  room_full:"Le salon est complet", practice_end:"Fin de l'entraînement", rounds_played:"Manches jouées", avg_pts:"Moyenne",
  mts:"monuments du monde", err:"erreur", guess_ph:"Entrez la hauteur", next_in:"Prochaine manche dans un instant…", start_in:"C'est parti !",
- share_daily:(n,s,e)=>`Peakle Défi du jour #${n}\n⛰️ ${s.toLocaleString("fr")} / 25 000 pts\n${e}\n`,
+ share_daily:(n,s,e)=>`Peakle Défi du jour #${n}\n🏙️ ${s.toLocaleString("fr")} / 25 000 pts\n${e}\n`,
  share_battle:(w,me,foe)=>`Peakle ⚔️ Duel 1 contre 1 — ${w}\n${me} vs ${foe}\n`,
  version_err:"Votre version du jeu diffère de celle de l'adversaire. Rechargez la page !",
 }
 };
-const LANGS=["ko","en","es","pt","ja","de","fr"];
+const LANGS=["ko","en","es","pt","ja","de","fr","it","ru","tr","pl","zh"];
 function detectLang(){
   const saved=localStorage.getItem("pk_lang");
-  if(saved && STR[saved]) return saved;
+  if(saved && LANGS.includes(saved)) return saved;
   const prefs=(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||"en"]);
-  for(const p of prefs){ const b=String(p).toLowerCase().split("-")[0]; if(STR[b]) return b; }
+  for(const p of prefs){ const b=String(p).toLowerCase().split("-")[0]; if(LANGS.includes(b)) return b; }
   return "en";
 }
 let L = detectLang();
@@ -606,6 +625,176 @@ de:{ login_btn:"Anmelden", pw_ph:"Passwort", login_ok:"Angemeldet! Deine Statist
 fr:{ login_btn:"Se connecter", pw_ph:"Mot de passe", login_ok:"Connecté ! Vos statistiques sont chargées", login_bad:"Mot de passe incorrect", login_many:"Trop de tentatives. Réessayez plus tard", forgot:"Mot de passe oublié ? (utiliser le code de récupération)", no_pw:"Ce pseudo n'a pas de mot de passe. Vous pouvez le récupérer avec le code de l'appareil d'origine.", pw_title:"🔒 Mot de passe", pw_none:"Non défini", pw_on:"Défini ✓", pw_new_ph:"Nouveau mot de passe (6 caractères min.)", pw_old_ph:"Mot de passe actuel", pw_set_btn:"Définir le mot de passe", pw_change_btn:"Changer le mot de passe", pw_short:"Le mot de passe doit contenir au moins 6 caractères", pw_set_ok:"Mot de passe défini ! Vous pouvez maintenant vous connecter sur d'autres appareils avec votre pseudo et votre mot de passe", pw_changed:"Mot de passe modifié", pw_need_nick:"Saisissez d'abord un pseudo sur l'écran d'accueil", pw_note:"Avec un mot de passe, vous retrouvez vos statistiques sur n'importe quel appareil ou navigateur avec seulement votre pseudo et votre mot de passe. N'utilisez pas le mot de passe d'un autre site.", logout:"Se déconnecter", logout_ok:"Déconnecté", pw_err:"Un problème est survenu. Réessayez plus tard", code_note:"Code de secours si vous oubliez votre mot de passe. Faites une capture d'écran et ne le partagez pas." },
 };
 for (const l in STR2) Object.assign(STR[l], STR2[l]);
+const STR3 = {
+ ko:{privacy:"개인정보처리방침", terms:"이용약관", contact:"문의", credits_page:"사진 출처"},
+ en:{privacy:"Privacy", terms:"Terms", contact:"Contact", credits_page:"Photo credits"},
+ es:{privacy:"Privacidad", terms:"Términos", contact:"Contacto", credits_page:"Créditos de fotos"},
+ pt:{privacy:"Privacidade", terms:"Termos", contact:"Contato", credits_page:"Créditos das fotos"},
+ ja:{privacy:"プライバシー", terms:"利用規約", contact:"お問い合わせ", credits_page:"写真クレジット"},
+ de:{privacy:"Datenschutz", terms:"Nutzungsbedingungen", contact:"Kontakt", credits_page:"Bildnachweise"},
+ fr:{privacy:"Confidentialité", terms:"Conditions", contact:"Contact", credits_page:"Crédits photo"},
+};
+for (const l in STR3) Object.assign(STR[l], STR3[l]);
+const STR4 = {
+ ko:{streak_n:n=>`연속 ${n}일`, chal_today:s=>`친구가 오늘의 데일리에서 ${s.toLocaleString()}점을 받았어요. 이길 수 있을까요?`, chal_other:"친구가 Peakle 데일리 도전장을 보냈어요!", chal_go:"🎯 도전하기", invite_copy:"🔗 초대 링크 보내기", invite_text:c=>`Peakle 1대1 대결하자! 방 코드 ${c}`, invite_hint:"초대받은 방이에요. 닉네임을 정하고 ‘참가’를 누르세요"},
+ en:{streak_n:n=>`${n}-day streak`, chal_today:s=>`A friend scored ${s.toLocaleString("en")} on today's Daily. Can you beat it?`, chal_other:"A friend challenged you to the Peakle Daily!", chal_go:"🎯 Take the challenge", invite_copy:"🔗 Send invite link", invite_text:c=>`Let's battle 1v1 on Peakle! Room code ${c}`, invite_hint:"You've been invited. Pick a nickname and tap “Join”"},
+ es:{streak_n:n=>`racha de ${n} día${n>1?"s":""}`, chal_today:s=>`Un amigo hizo ${s.toLocaleString("es")} pts en el reto de hoy. ¿Puedes superarlo?`, chal_other:"¡Un amigo te desafió al reto diario de Peakle!", chal_go:"🎯 Aceptar el reto", invite_copy:"🔗 Enviar enlace de invitación", invite_text:c=>`¡Duelo 1 vs 1 en Peakle! Código de sala ${c}`, invite_hint:"Te invitaron a una sala. Elige un apodo y toca «Entrar»"},
+ pt:{streak_n:n=>`sequência de ${n} dia${n>1?"s":""}`, chal_today:s=>`Um amigo fez ${s.toLocaleString("pt-BR")} pts no desafio de hoje. Consegue superar?`, chal_other:"Um amigo te desafiou no desafio diário do Peakle!", chal_go:"🎯 Aceitar o desafio", invite_copy:"🔗 Enviar link de convite", invite_text:c=>`Bora duelar 1 x 1 no Peakle! Código da sala ${c}`, invite_hint:"Você foi convidado. Escolha um apelido e toque em “Entrar”"},
+ ja:{streak_n:n=>`${n}日連続`, chal_today:s=>`友達が今日のデイリーで${s.toLocaleString("ja")}点を取りました。勝てるかな?`, chal_other:"友達からPeakleデイリーの挑戦状が届きました!", chal_go:"🎯 挑戦する", invite_copy:"🔗 招待リンクを送る", invite_text:c=>`Peakleで1対1バトルしよう!ルームコード ${c}`, invite_hint:"招待されたルームです。ニックネームを決めて「参加」をタップ"},
+ de:{streak_n:n=>n===1?"1 Tag in Folge":`${n} Tage in Folge`, chal_today:s=>`Ein Freund hat heute ${s.toLocaleString("de")} Pkt. in der täglichen Challenge. Schaffst du mehr?`, chal_other:"Ein Freund fordert dich zur täglichen Peakle-Challenge heraus!", chal_go:"🎯 Herausforderung annehmen", invite_copy:"🔗 Einladungslink senden", invite_text:c=>`Lass uns auf Peakle 1 gegen 1 spielen! Raumcode ${c}`, invite_hint:"Du wurdest eingeladen. Wähle einen Spitznamen und tippe auf „Beitreten“"},
+ fr:{streak_n:n=>`série de ${n} jour${n>1?"s":""}`, chal_today:s=>`Un ami a fait ${s.toLocaleString("fr")} pts au défi du jour. Feras-tu mieux ?`, chal_other:"Un ami vous lance le défi du jour Peakle !", chal_go:"🎯 Relever le défi", invite_copy:"🔗 Envoyer le lien d'invitation", invite_text:c=>`Duel 1 contre 1 sur Peakle ! Code du salon ${c}`, invite_hint:"Vous avez été invité. Choisissez un pseudo et touchez « Rejoindre »"},
+};
+for (const l in STR4) Object.assign(STR[l], STR4[l]);
+/* ===== 2순위 언어 5개 (이탈리아어·러시아어·튀르키예어·폴란드어·중국어 번체) ===== */
+const STR5 = {
+it:{
+ tag:"Indovina l'altezza dei monumenti del mondo. Sfida tutti.", nick:"Nickname (2–12 caratteri)", daily:"📅 Sfida del giorno",
+ battle:"⚔️ Duello 1 contro 1", practice:"🎯 Allenamento", settings:"⚙️ Impostazioni", quick:"⚡ Partita rapida",
+ create:"🏠 Crea stanza", join:"Entra", join_lbl:"Entra con un codice",
+ battle_note:"Si parte con 1.000 PV. A ogni round chi si avvicina di più toglie (differenza tra i due errori in metri) × il proprio moltiplicatore. Es.: il tuo errore 20 m, il suo 70 m → perde 50. Entrambi partono da ×1; ogni round vinto aggiunge +0,5 al tuo moltiplicatore. Max 15 round.",
+ nick_chars:"Usa solo lettere, numeri, spazi, _ o -", nick_taken:"Questo nickname è già in uso", nick_free:"Nickname disponibile", nick_mine:"Il tuo nickname",
+ recover_q:"È tuo?", recover_btn:"Recupera", recover_ok:"Nickname recuperato!", recover_bad:"Codice di recupero errato", recover_ph:"Codice di recupero",
+ offline:"Impossibile raggiungere il server. Controlla la connessione", code_title:"Il mio codice di recupero", copy_code2:"Copia il codice di recupero",
+ code_note:"Codice di emergenza per quando dimentichi la password. Salva uno screenshot e non condividerlo.",
+ w:"V", l:"S", d:"P", daily_best:"Record giornaliero", photo_src:"Fonte della foto (Wikimedia Commons)", daily_saved:"Progressi salvati. Puoi continuare più tardi", rematch:"🔄 Rivincita", rematch_bot:"🔄 Gioca ancora", rematch_wait:"In attesa dell'avversario…", rematch_req:"L'avversario vuole la rivincita! Tocca per iniziare", opp_gone:"L'avversario è uscito", attack:"attacco", tie:"Round pari", photo_loading:"Caricamento foto…", next_mult:"Moltiplicatori del prossimo round —", foe:"Avversario", join_fail:"L'avversario si è disconnesso. Nuova ricerca…",
+ matching:"Ricerca avversario…", matching_desc:"Se nessuno entra entro 30 s, giocherai contro un bot di allenamento",
+ room_wait:"In attesa del tuo amico…", room_desc:"Condividi questo codice con un amico", copy_code:"Copia codice", copied:"Copiato!",
+ round:"Round", answer:"Altezza reale", me:"Tu", bot_prefix:"", submit_done:"Inviato! In attesa dell'avversario…",
+ timeout:"Tempo scaduto!", damage:"danni", pts:"pt", win:"Vittoria!", lose:"Sconfitta…", draw:"Pareggio",
+ win_sub:"Un senso dell'altezza imbattibile!", lose_sub:"La prossima volta punta più in alto.", draw_sub:"Perfettamente alla pari!",
+ opp_left:"L'avversario è uscito. Hai vinto!", share:"Condividi il risultato", home:"Home", quit:"Esci",
+ daily_title:"Sfida del giorno", daily_max:"/ 25.000 pt", daily_next:"Nuova sfida a mezzanotte (UTC)!",
+ daily_done:"Hai già completato la sfida di oggi", lang:"Lingua", unit:"Unità di altezza", sound:"Suono", on:"Sì", off:"No",
+ settings_note:"I monumenti sono mostrati con il nome ufficiale in inglese.",
+ nick_short:"Il nickname deve avere almeno 2 caratteri", nick_bad:"Questo nickname non è consentito", no_room:"Stanza non trovata",
+ room_full:"La stanza è piena", practice_end:"Fine allenamento", rounds_played:"Round giocati", avg_pts:"Media",
+ mts:"monumenti del mondo", err:"errore", guess_ph:"Inserisci l'altezza", next_in:"Prossimo round a breve…", start_in:"Si parte!",
+ share_daily:(n,s,e)=>`Peakle Sfida del giorno #${n}\n🏙️ ${s.toLocaleString("it")} / 25.000 pt\n${e}\n`,
+ share_battle:(w,me,foe)=>`Peakle ⚔️ Duello 1 contro 1 — ${w}\n${me} vs ${foe}\n`,
+ version_err:"La tua versione del gioco è diversa da quella dell'avversario. Ricarica la pagina!",
+ login_btn:"Accedi", pw_ph:"Password", login_ok:"Accesso effettuato! I tuoi dati sono stati caricati", login_bad:"Password errata", login_many:"Troppi tentativi. Riprova più tardi", forgot:"Password dimenticata? (usa il codice di recupero)", no_pw:"Questo nickname non ha una password. Puoi recuperarlo con il codice del dispositivo originale.", pw_title:"🔒 Password", pw_none:"Non impostata", pw_on:"Impostata ✓", pw_new_ph:"Nuova password (min. 6 caratteri)", pw_old_ph:"Password attuale", pw_set_btn:"Imposta password", pw_change_btn:"Cambia password", pw_short:"La password deve avere almeno 6 caratteri", pw_set_ok:"Password impostata! Ora puoi accedere da altri dispositivi con nickname e password", pw_changed:"Password cambiata", pw_need_nick:"Prima inserisci un nickname nella schermata iniziale", pw_note:"Con una password ritrovi i tuoi dati su qualsiasi dispositivo o browser usando solo nickname e password. Non riutilizzare la password di un altro sito.", logout:"Esci dall'account", logout_ok:"Disconnesso", pw_err:"Qualcosa è andato storto. Riprova più tardi",
+ privacy:"Privacy", terms:"Termini", contact:"Contatti", credits_page:"Crediti foto",
+ streak_n:n=>`${n} ${n===1?"giorno":"giorni"} di fila`, chal_today:s=>`Un amico ha fatto ${s.toLocaleString("it")} pt nella sfida di oggi. Riesci a batterlo?`, chal_other:"Un amico ti ha sfidato alla sfida del giorno di Peakle!", chal_go:"🎯 Accetta la sfida", invite_copy:"🔗 Invia link d'invito", invite_text:c=>`Sfidiamoci 1 contro 1 su Peakle! Codice stanza ${c}`, invite_hint:"Sei stato invitato. Scegli un nickname e tocca «Entra»",
+},
+ru:{
+ tag:"Угадай высоту знаменитых сооружений мира. Сразись со всеми.", nick:"Никнейм (2–12 символов)", daily:"📅 Задание дня",
+ battle:"⚔️ Дуэль 1 на 1", practice:"🎯 Тренировка", settings:"⚙️ Настройки", quick:"⚡ Быстрая игра",
+ create:"🏠 Создать комнату", join:"Войти", join_lbl:"Войти по коду",
+ battle_note:"У каждого 1000 HP. В каждом раунде тот, кто ближе, наносит урон: (разница между ошибками в метрах) × свой множитель. Пример: твоя ошибка 20 м, его — 70 м → он теряет 50. Оба начинают с ×1; каждый выигранный раунд добавляет +0,5 к твоему множителю. Максимум 15 раундов.",
+ nick_chars:"Только буквы, цифры, пробелы, _ или -", nick_taken:"Этот никнейм уже занят", nick_free:"Никнейм свободен", nick_mine:"Твой никнейм",
+ recover_q:"Это твой?", recover_btn:"Восстановить", recover_ok:"Никнейм восстановлен!", recover_bad:"Неверный код восстановления", recover_ph:"Код восстановления",
+ offline:"Нет связи с сервером. Проверь подключение", code_title:"Мой код восстановления", copy_code2:"Скопировать код",
+ code_note:"Аварийный код на случай, если забудешь пароль. Сохрани скриншот и никому не показывай.",
+ w:"П", l:"Пр", d:"Н", daily_best:"Лучший результат дня", photo_src:"Источник фото (Wikimedia Commons)", daily_saved:"Прогресс сохранён. Можно продолжить позже", rematch:"🔄 Реванш", rematch_bot:"🔄 Играть снова", rematch_wait:"Ждём соперника…", rematch_req:"Соперник хочет реванш! Нажми, чтобы начать", opp_gone:"Соперник вышел", attack:"атака", tie:"Ничья в раунде", photo_loading:"Загрузка фото…", next_mult:"Множители следующего раунда —", foe:"Соперник", join_fail:"Соперник отключился. Ищем снова…",
+ matching:"Ищем соперника…", matching_desc:"Если за 30 секунд никто не найдётся, сыграешь с тренировочным ботом",
+ room_wait:"Ждём друга…", room_desc:"Отправь этот код другу", copy_code:"Скопировать код", copied:"Скопировано!",
+ round:"Раунд", answer:"Настоящая высота", me:"Ты", bot_prefix:"", submit_done:"Отправлено! Ждём соперника…",
+ timeout:"Время вышло!", damage:"урон", pts:"очк.", win:"Победа!", lose:"Поражение…", draw:"Ничья",
+ win_sub:"Непревзойдённое чувство высоты!", lose_sub:"В следующий раз — выше!", draw_sub:"Идеальное равенство!",
+ opp_left:"Соперник вышел. Ты победил!", share:"Поделиться результатом", home:"Главная", quit:"Выйти",
+ daily_title:"Задание дня", daily_max:"/ 25 000 очк.", daily_next:"Новое задание в полночь (UTC)!",
+ daily_done:"Ты уже прошёл сегодняшнее задание", lang:"Язык", unit:"Единица высоты", sound:"Звук", on:"Вкл", off:"Выкл",
+ settings_note:"Сооружения показаны с официальными названиями на английском.",
+ nick_short:"Никнейм должен быть не короче 2 символов", nick_bad:"Этот никнейм запрещён", no_room:"Комната не найдена",
+ room_full:"Комната заполнена", practice_end:"Тренировка окончена", rounds_played:"Сыграно раундов", avg_pts:"В среднем",
+ mts:"сооружений мира", err:"ошибка", guess_ph:"Введи высоту", next_in:"Следующий раунд скоро…", start_in:"Начали!",
+ share_daily:(n,s,e)=>`Peakle Задание дня #${n}\n🏙️ ${s.toLocaleString("ru")} / 25 000 очк.\n${e}\n`,
+ share_battle:(w,me,foe)=>`Peakle ⚔️ Дуэль 1 на 1 — ${w}\n${me} vs ${foe}\n`,
+ version_err:"Версия игры не совпадает с версией соперника. Обнови страницу!",
+ login_btn:"Войти", pw_ph:"Пароль", login_ok:"Вход выполнен! Твоя статистика загружена", login_bad:"Неверный пароль", login_many:"Слишком много попыток. Попробуй позже", forgot:"Забыл пароль? (используй код восстановления)", no_pw:"У этого никнейма нет пароля. Его можно восстановить кодом с исходного устройства.", pw_title:"🔒 Пароль", pw_none:"Не задан", pw_on:"Задан ✓", pw_new_ph:"Новый пароль (от 6 символов)", pw_old_ph:"Текущий пароль", pw_set_btn:"Задать пароль", pw_change_btn:"Сменить пароль", pw_short:"Пароль должен быть не короче 6 символов", pw_set_ok:"Пароль задан! Теперь можно входить с других устройств по никнейму и паролю", pw_changed:"Пароль изменён", pw_need_nick:"Сначала введи никнейм на главном экране", pw_note:"С паролем твоя статистика доступна на любом устройстве и в любом браузере — достаточно никнейма и пароля. Не используй пароль от других сайтов.", logout:"Выйти из аккаунта", logout_ok:"Ты вышел из аккаунта", pw_err:"Что-то пошло не так. Попробуй позже",
+ privacy:"Конфиденциальность", terms:"Условия", contact:"Контакты", credits_page:"Авторы фото",
+ streak_n:n=>`${n} дн. подряд`, chal_today:s=>`Друг набрал ${s.toLocaleString("ru")} очк. в сегодняшнем задании. Сможешь больше?`, chal_other:"Друг бросил тебе вызов в задании дня Peakle!", chal_go:"🎯 Принять вызов", invite_copy:"🔗 Отправить приглашение", invite_text:c=>`Сыграем 1 на 1 в Peakle! Код комнаты ${c}`, invite_hint:"Тебя пригласили. Выбери никнейм и нажми «Войти»",
+},
+tr:{
+ tag:"Dünyanın ünlü yapılarının yüksekliğini tahmin et. Herkesle kapış.", nick:"Takma ad (2–12 karakter)", daily:"📅 Günün görevi",
+ battle:"⚔️ 1'e 1 düello", practice:"🎯 Antrenman", settings:"⚙️ Ayarlar", quick:"⚡ Hızlı maç",
+ create:"🏠 Oda kur", join:"Katıl", join_lbl:"Kodla katıl",
+ battle_note:"1.000 can ile başlarsın. Her turda daha yakın tahmin eden, (iki hata arasındaki fark, metre) × kendi çarpanı kadar hasar verir. Örnek: senin hatan 20 m, rakibin 70 m → rakip 50 kaybeder. İkiniz de ×1 ile başlarsınız; kazandığın her tur çarpanına +0,5 ekler. En fazla 15 tur.",
+ nick_chars:"Yalnızca harf, rakam, boşluk, _ veya - kullan", nick_taken:"Bu takma ad alınmış", nick_free:"Takma ad kullanılabilir", nick_mine:"Senin takma adın",
+ recover_q:"Senin mi?", recover_btn:"Geri al", recover_ok:"Takma ad geri alındı!", recover_bad:"Kurtarma kodu yanlış", recover_ph:"Kurtarma kodu",
+ offline:"Sunucuya ulaşılamıyor. Bağlantını kontrol et", code_title:"Kurtarma kodum", copy_code2:"Kurtarma kodunu kopyala",
+ code_note:"Şifreni unutursan kullanacağın acil durum kodu. Ekran görüntüsünü al ve kimseyle paylaşma.",
+ w:"G", l:"M", d:"B", daily_best:"Günlük rekor", photo_src:"Fotoğraf kaynağı (Wikimedia Commons)", daily_saved:"İlerleme kaydedildi. Sonra devam edebilirsin", rematch:"🔄 Rövanş", rematch_bot:"🔄 Tekrar oyna", rematch_wait:"Rakip bekleniyor…", rematch_req:"Rakip rövanş istiyor! Başlamak için dokun", opp_gone:"Rakip ayrıldı", attack:"saldırı", tie:"Berabere tur", photo_loading:"Fotoğraf yükleniyor…", next_mult:"Sonraki turun çarpanları —", foe:"Rakip", join_fail:"Rakibin bağlantısı koptu. Yeniden aranıyor…",
+ matching:"Rakip aranıyor…", matching_desc:"30 saniye içinde kimse gelmezse antrenman botuyla oynarsın",
+ room_wait:"Arkadaşın bekleniyor…", room_desc:"Bu kodu bir arkadaşınla paylaş", copy_code:"Kodu kopyala", copied:"Kopyalandı!",
+ round:"Tur", answer:"Gerçek yükseklik", me:"Sen", bot_prefix:"", submit_done:"Gönderildi! Rakip bekleniyor…",
+ timeout:"Süre doldu!", damage:"hasar", pts:"puan", win:"Zafer!", lose:"Yenilgi…", draw:"Berabere",
+ win_sub:"Durdurulamaz bir yükseklik sezgisi!", lose_sub:"Bir dahaki sefere daha yükseğe.", draw_sub:"Tam bir denge!",
+ opp_left:"Rakip ayrıldı. Kazandın!", share:"Sonucu paylaş", home:"Ana sayfa", quit:"Çık",
+ daily_title:"Günün görevi", daily_max:"/ 25.000 puan", daily_next:"Yeni görev gece yarısı (UTC)!",
+ daily_done:"Bugünün görevini zaten tamamladın", lang:"Dil", unit:"Yükseklik birimi", sound:"Ses", on:"Açık", off:"Kapalı",
+ settings_note:"Yapılar resmî İngilizce adlarıyla gösterilir.",
+ nick_short:"Takma ad en az 2 karakter olmalı", nick_bad:"Bu takma ada izin verilmiyor", no_room:"Oda bulunamadı",
+ room_full:"Oda dolu", practice_end:"Antrenman bitti", rounds_played:"Oynanan tur", avg_pts:"Ortalama",
+ mts:"dünya yapısı", err:"hata", guess_ph:"Yüksekliği gir", next_in:"Sonraki tur birazdan…", start_in:"Oyun başladı!",
+ share_daily:(n,s,e)=>`Peakle Günün görevi #${n}\n🏙️ ${s.toLocaleString("tr")} / 25.000 puan\n${e}\n`,
+ share_battle:(w,me,foe)=>`Peakle ⚔️ 1'e 1 düello — ${w}\n${me} vs ${foe}\n`,
+ version_err:"Oyun sürümün rakibininkiyle aynı değil. Sayfayı yenile!",
+ login_btn:"Giriş yap", pw_ph:"Şifre", login_ok:"Giriş yapıldı! Kayıtların yüklendi", login_bad:"Şifre yanlış", login_many:"Çok fazla deneme. Daha sonra tekrar dene", forgot:"Şifreni mi unuttun? (kurtarma kodunu kullan)", no_pw:"Bu takma adın şifresi yok. Asıl cihazdaki kurtarma koduyla geri alabilirsin.", pw_title:"🔒 Şifre", pw_none:"Ayarlanmadı", pw_on:"Ayarlandı ✓", pw_new_ph:"Yeni şifre (en az 6 karakter)", pw_old_ph:"Mevcut şifre", pw_set_btn:"Şifre belirle", pw_change_btn:"Şifreyi değiştir", pw_short:"Şifre en az 6 karakter olmalı", pw_set_ok:"Şifre belirlendi! Artık diğer cihazlarda takma ad ve şifrenle giriş yapabilirsin", pw_changed:"Şifre değiştirildi", pw_need_nick:"Önce ana ekranda bir takma ad gir", pw_note:"Şifre belirlersen kayıtlarını her cihazda ve tarayıcıda yalnızca takma ad ve şifreyle kullanabilirsin. Başka sitelerdeki şifreni kullanma.", logout:"Çıkış yap", logout_ok:"Çıkış yapıldı", pw_err:"Bir sorun oluştu. Daha sonra tekrar dene",
+ privacy:"Gizlilik", terms:"Koşullar", contact:"İletişim", credits_page:"Fotoğraf kaynakları",
+ streak_n:n=>`${n} gün üst üste`, chal_today:s=>`Bir arkadaşın bugünün görevinde ${s.toLocaleString("tr")} puan aldı. Geçebilir misin?`, chal_other:"Bir arkadaşın seni Peakle günün görevine davet etti!", chal_go:"🎯 Meydan okumayı kabul et", invite_copy:"🔗 Davet bağlantısı gönder", invite_text:c=>`Peakle'da 1'e 1 kapışalım! Oda kodu ${c}`, invite_hint:"Davet edildin. Bir takma ad seç ve “Katıl”a dokun",
+},
+pl:{
+ tag:"Zgadnij wysokość słynnych budowli świata. Rzuć wyzwanie wszystkim.", nick:"Pseudonim (2–12 znaków)", daily:"📅 Wyzwanie dnia",
+ battle:"⚔️ Pojedynek 1 na 1", practice:"🎯 Trening", settings:"⚙️ Ustawienia", quick:"⚡ Szybka gra",
+ create:"🏠 Utwórz pokój", join:"Dołącz", join_lbl:"Dołącz kodem",
+ battle_note:"Startujesz z 1000 PŻ. W każdej rundzie bliższy strzał zadaje (różnica między błędami w metrach) × własny mnożnik. Np. twój błąd 20 m, jego 70 m → traci 50. Obaj zaczynacie od ×1; każda wygrana runda dodaje +0,5 do twojego mnożnika. Maks. 15 rund.",
+ nick_chars:"Używaj tylko liter, cyfr, spacji, _ lub -", nick_taken:"Ten pseudonim jest zajęty", nick_free:"Pseudonim dostępny", nick_mine:"Twój pseudonim",
+ recover_q:"To twój?", recover_btn:"Odzyskaj", recover_ok:"Pseudonim odzyskany!", recover_bad:"Błędny kod odzyskiwania", recover_ph:"Kod odzyskiwania",
+ offline:"Brak połączenia z serwerem. Sprawdź internet", code_title:"Mój kod odzyskiwania", copy_code2:"Kopiuj kod odzyskiwania",
+ code_note:"Kod awaryjny na wypadek zapomnienia hasła. Zrób zrzut ekranu i nikomu go nie pokazuj.",
+ w:"W", l:"P", d:"R", daily_best:"Najlepszy dzienny wynik", photo_src:"Źródło zdjęcia (Wikimedia Commons)", daily_saved:"Postęp zapisany. Możesz dokończyć później", rematch:"🔄 Rewanż", rematch_bot:"🔄 Zagraj ponownie", rematch_wait:"Czekamy na przeciwnika…", rematch_req:"Przeciwnik chce rewanżu! Dotknij, by zacząć", opp_gone:"Przeciwnik wyszedł", attack:"atak", tie:"Remis w rundzie", photo_loading:"Wczytywanie zdjęcia…", next_mult:"Mnożniki w następnej rundzie —", foe:"Przeciwnik", join_fail:"Przeciwnik się rozłączył. Szukamy ponownie…",
+ matching:"Szukamy przeciwnika…", matching_desc:"Jeśli nikt nie dołączy w 30 s, zagrasz z botem treningowym",
+ room_wait:"Czekamy na znajomego…", room_desc:"Wyślij ten kod znajomemu", copy_code:"Kopiuj kod", copied:"Skopiowano!",
+ round:"Runda", answer:"Prawdziwa wysokość", me:"Ty", bot_prefix:"", submit_done:"Wysłano! Czekamy na przeciwnika…",
+ timeout:"Koniec czasu!", damage:"obrażeń", pts:"pkt", win:"Zwycięstwo!", lose:"Porażka…", draw:"Remis",
+ win_sub:"Niepokonane wyczucie wysokości!", lose_sub:"Następnym razem celuj wyżej.", draw_sub:"Idealnie równo!",
+ opp_left:"Przeciwnik wyszedł. Wygrywasz!", share:"Udostępnij wynik", home:"Start", quit:"Wyjdź",
+ daily_title:"Wyzwanie dnia", daily_max:"/ 25 000 pkt", daily_next:"Nowe wyzwanie o północy (UTC)!",
+ daily_done:"Dzisiejsze wyzwanie masz już za sobą", lang:"Język", unit:"Jednostka wysokości", sound:"Dźwięk", on:"Wł.", off:"Wył.",
+ settings_note:"Budowle są pokazywane pod oficjalnymi angielskimi nazwami.",
+ nick_short:"Pseudonim musi mieć co najmniej 2 znaki", nick_bad:"Ten pseudonim jest niedozwolony", no_room:"Nie znaleziono pokoju",
+ room_full:"Pokój jest pełny", practice_end:"Koniec treningu", rounds_played:"Rozegrane rundy", avg_pts:"Średnio",
+ mts:"budowli świata", err:"błąd", guess_ph:"Wpisz wysokość", next_in:"Za chwilę następna runda…", start_in:"Start!",
+ share_daily:(n,s,e)=>`Peakle Wyzwanie dnia #${n}\n🏙️ ${s.toLocaleString("pl")} / 25 000 pkt\n${e}\n`,
+ share_battle:(w,me,foe)=>`Peakle ⚔️ Pojedynek 1 na 1 — ${w}\n${me} vs ${foe}\n`,
+ version_err:"Twoja wersja gry różni się od wersji przeciwnika. Odśwież stronę!",
+ login_btn:"Zaloguj", pw_ph:"Hasło", login_ok:"Zalogowano! Twoje statystyki są wczytane", login_bad:"Błędne hasło", login_many:"Zbyt wiele prób. Spróbuj później", forgot:"Nie pamiętasz hasła? (użyj kodu odzyskiwania)", no_pw:"Ten pseudonim nie ma hasła. Możesz go odzyskać kodem z pierwotnego urządzenia.", pw_title:"🔒 Hasło", pw_none:"Nie ustawiono", pw_on:"Ustawione ✓", pw_new_ph:"Nowe hasło (min. 6 znaków)", pw_old_ph:"Obecne hasło", pw_set_btn:"Ustaw hasło", pw_change_btn:"Zmień hasło", pw_short:"Hasło musi mieć co najmniej 6 znaków", pw_set_ok:"Hasło ustawione! Teraz możesz logować się na innych urządzeniach pseudonimem i hasłem", pw_changed:"Hasło zmienione", pw_need_nick:"Najpierw wpisz pseudonim na ekranie startowym", pw_note:"Z hasłem masz dostęp do statystyk na każdym urządzeniu i w każdej przeglądarce — wystarczy pseudonim i hasło. Nie używaj hasła z innych stron.", logout:"Wyloguj", logout_ok:"Wylogowano", pw_err:"Coś poszło nie tak. Spróbuj później",
+ privacy:"Prywatność", terms:"Regulamin", contact:"Kontakt", credits_page:"Autorzy zdjęć",
+ streak_n:n=>`${n} ${n===1?"dzień":"dni"} z rzędu`, chal_today:s=>`Znajomy zdobył ${s.toLocaleString("pl")} pkt w dzisiejszym wyzwaniu. Dasz radę więcej?`, chal_other:"Znajomy rzucił ci wyzwanie dnia Peakle!", chal_go:"🎯 Podejmij wyzwanie", invite_copy:"🔗 Wyślij link z zaproszeniem", invite_text:c=>`Zagrajmy 1 na 1 w Peakle! Kod pokoju ${c}`, invite_hint:"Masz zaproszenie. Wybierz pseudonim i dotknij „Dołącz”",
+},
+zh:{
+ tag:"猜猜世界知名建築有多高,挑戰所有人。", nick:"暱稱(2~12 個字)", daily:"📅 每日挑戰",
+ battle:"⚔️ 1 對 1 對戰", practice:"🎯 練習模式", settings:"⚙️ 設定", quick:"⚡ 快速配對",
+ create:"🏠 建立房間", join:"加入", join_lbl:"輸入代碼加入",
+ battle_note:"雙方各有 1,000 HP。每回合猜得較準的一方,會造成(兩人誤差的差距,公尺)× 自己倍率的傷害。例:你的誤差 20 公尺、對手 70 公尺 → 對手扣 50。雙方都從 ×1 開始,每贏一回合倍率 +0.5。最多 15 回合。",
+ nick_chars:"只能使用文字、數字、空格、_ 或 -", nick_taken:"這個暱稱已被使用", nick_free:"可以使用這個暱稱", nick_mine:"你的暱稱",
+ recover_q:"是你的嗎?", recover_btn:"找回", recover_ok:"已找回暱稱!", recover_bad:"找回代碼錯誤", recover_ph:"找回代碼",
+ offline:"無法連線到伺服器,請檢查網路", code_title:"我的找回代碼", copy_code2:"複製找回代碼",
+ code_note:"忘記密碼時使用的緊急代碼。請截圖保存,不要告訴別人。",
+ w:"勝", l:"敗", d:"和", daily_best:"每日最佳", photo_src:"照片來源(Wikimedia Commons)", daily_saved:"已儲存進度,之後可以繼續", rematch:"🔄 再戰", rematch_bot:"🔄 再玩一次", rematch_wait:"等待對手…", rematch_req:"對手想再戰!點一下開始", opp_gone:"對手已離開", attack:"攻擊", tie:"平手回合", photo_loading:"照片載入中…", next_mult:"下一回合倍率 —", foe:"對手", join_fail:"對手斷線了,重新搜尋中…",
+ matching:"正在尋找對手…", matching_desc:"30 秒內沒有人加入的話,將與練習機器人對戰",
+ room_wait:"等待朋友加入…", room_desc:"把這個代碼分享給朋友", copy_code:"複製代碼", copied:"已複製!",
+ round:"回合", answer:"實際高度", me:"你", bot_prefix:"", submit_done:"已送出!等待對手…",
+ timeout:"時間到!", damage:"傷害", pts:"分", win:"勝利!", lose:"落敗…", draw:"平手",
+ win_sub:"無人能敵的高度感!", lose_sub:"下次再挑戰更高。", draw_sub:"完全勢均力敵!",
+ opp_left:"對手離開了,你贏了!", share:"分享結果", home:"首頁", quit:"離開",
+ daily_title:"每日挑戰", daily_max:"/ 25,000 分", daily_next:"每天 0 點(UTC)推出新題目!",
+ daily_done:"你已完成今天的挑戰", lang:"語言", unit:"高度單位", sound:"音效", on:"開", off:"關",
+ settings_note:"建築名稱以官方英文名稱顯示。",
+ nick_short:"暱稱至少需要 2 個字", nick_bad:"這個暱稱無法使用", no_room:"找不到房間",
+ room_full:"房間已滿", practice_end:"練習結束", rounds_played:"已玩回合", avg_pts:"平均分數",
+ mts:"座世界建築", err:"誤差", guess_ph:"輸入高度", next_in:"下一回合即將開始…", start_in:"遊戲開始!",
+ share_daily:(n,s,e)=>`Peakle 每日挑戰 #${n}\n🏙️ ${s.toLocaleString("zh-TW")} / 25,000 分\n${e}\n`,
+ share_battle:(w,me,foe)=>`Peakle ⚔️ 1 對 1 對戰 — ${w}\n${me} vs ${foe}\n`,
+ version_err:"你的遊戲版本與對手不同,請重新整理頁面!",
+ login_btn:"登入", pw_ph:"密碼", login_ok:"登入成功!已載入你的紀錄", login_bad:"密碼錯誤", login_many:"嘗試次數過多,請稍後再試", forgot:"忘記密碼?(使用找回代碼)", no_pw:"這個暱稱沒有設定密碼,可以用原本裝置的找回代碼取回。", pw_title:"🔒 密碼", pw_none:"未設定", pw_on:"已設定 ✓", pw_new_ph:"新密碼(至少 6 個字元)", pw_old_ph:"目前的密碼", pw_set_btn:"設定密碼", pw_change_btn:"變更密碼", pw_short:"密碼至少需要 6 個字元", pw_set_ok:"密碼設定完成!現在可以在其他裝置用暱稱和密碼登入", pw_changed:"已變更密碼", pw_need_nick:"請先在首頁輸入暱稱", pw_note:"設定密碼後,在任何裝置或瀏覽器只要輸入暱稱和密碼就能延續紀錄。請不要使用其他網站的密碼。", logout:"登出", logout_ok:"已登出", pw_err:"發生問題,請稍後再試",
+ privacy:"隱私權政策", terms:"使用條款", contact:"聯絡我們", credits_page:"照片來源",
+ streak_n:n=>`連續 ${n} 天`, chal_today:s=>`朋友在今天的每日挑戰拿到 ${s.toLocaleString("zh-TW")} 分,你能超越嗎?`, chal_other:"朋友向你發出 Peakle 每日挑戰!", chal_go:"🎯 接受挑戰", invite_copy:"🔗 傳送邀請連結", invite_text:c=>`來 Peakle 1 對 1 對戰吧!房間代碼 ${c}`, invite_hint:"你收到了邀請。設定暱稱後點「加入」",
+},
+};
+for (const l in STR5) STR[l] = STR5[l];
+
 const t = k => (STR[L][k] ?? STR.en[k]);
 
 /* ================= 상태/설정 ================= */
@@ -784,9 +973,19 @@ async function loadStats(){
   if(!myNickKey || !await online()) return;
   try{ const s=await get(ref(db,`stats/${myNickKey}`)); myStats=s.val()||{}; renderStats(); }catch(e){}
 }
+/* 데일리 연속 기록: 이 기기 기록 + 서버 기록(다른 기기에서 한 것 포함). 오늘 아직 안 했으면 어제까지로 계산 */
+function dailyStreak(){
+  const done=new Set();
+  try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.startsWith("pk_d2_")) done.add(+k.slice(6)); } }catch(e){}
+  if(myStats&&myStats.daily) Object.keys(myStats.daily).forEach(k=>done.add(+k));
+  let d=dailyNum(); if(!done.has(d)) d--;
+  let n=0; while(done.has(d)){ n++; d--; }
+  return n;
+}
 function renderStats(){
   const s=myStats||{}, el=$("mystats");
   const parts=[];
+  const st=dailyStreak(); if(st>=2) parts.push("🔥 "+t("streak_n")(st));
   if(s.games) parts.push(`🏆 ${s.wins||0}${t("w")} ${s.losses||0}${t("l")}`+(s.draws?` ${s.draws}${t("d")}`:""));
   if(s.best) parts.push(`📅 ${t("daily_best")} ${s.best.toLocaleString()}`);
   el.textContent=parts.join("  ·  ");
@@ -814,12 +1013,12 @@ function flagURL(iso){ return "https://flagcdn.com/w160/"+iso.toLowerCase()+".pn
 function mtName(m){ return (L==="ko" && m[3]) ? m[3] : m[0]; }
 
 const CATS={
- 1:{ko:"건물",en:"Building",es:"Edificio",pt:"Edifício",ja:"ビル",de:"Gebäude",fr:"Immeuble",ic:"🏢"},
- 2:{ko:"타워",en:"Tower",es:"Torre",pt:"Torre",ja:"タワー",de:"Turm",fr:"Tour",ic:"🗼"},
- 3:{ko:"다리",en:"Bridge",es:"Puente",pt:"Ponte",ja:"橋",de:"Brücke",fr:"Pont",ic:"🌉"},
- 4:{ko:"기념물·동상",en:"Monument / Statue",es:"Monumento / Estatua",pt:"Monumento / Estátua",ja:"記念碑・像",de:"Denkmal / Statue",fr:"Monument / Statue",ic:"🗽"},
- 5:{ko:"종교 건축",en:"Religious",es:"Edificio religioso",pt:"Edifício religioso",ja:"宗教建築",de:"Sakralbau",fr:"Édifice religieux",ic:"⛪"},
- 6:{ko:"경기장·구조물",en:"Stadium / Structure",es:"Estadio / Estructura",pt:"Estádio / Estrutura",ja:"競技場・構造物",de:"Stadion / Bauwerk",fr:"Stade / Structure",ic:"🏟"}};
+ 1:{ko:"건물",en:"Building",es:"Edificio",pt:"Edifício",ja:"ビル",de:"Gebäude",fr:"Immeuble",it:"Edificio",ru:"Здание",tr:"Bina",pl:"Budynek",zh:"大樓",ic:"🏢"},
+ 2:{ko:"타워",en:"Tower",es:"Torre",pt:"Torre",ja:"タワー",de:"Turm",fr:"Tour",it:"Torre",ru:"Башня",tr:"Kule",pl:"Wieża",zh:"塔",ic:"🗼"},
+ 3:{ko:"다리",en:"Bridge",es:"Puente",pt:"Ponte",ja:"橋",de:"Brücke",fr:"Pont",it:"Ponte",ru:"Мост",tr:"Köprü",pl:"Most",zh:"橋梁",ic:"🌉"},
+ 4:{ko:"기념물·동상",en:"Monument / Statue",es:"Monumento / Estatua",pt:"Monumento / Estátua",ja:"記念碑・像",de:"Denkmal / Statue",fr:"Monument / Statue",it:"Monumento / Statua",ru:"Памятник / Статуя",tr:"Anıt / Heykel",pl:"Pomnik / Posąg",zh:"紀念碑・雕像",ic:"🗽"},
+ 5:{ko:"종교 건축",en:"Religious",es:"Edificio religioso",pt:"Edifício religioso",ja:"宗教建築",de:"Sakralbau",fr:"Édifice religieux",it:"Edificio religioso",ru:"Культовое сооружение",tr:"Dini yapı",pl:"Budowla sakralna",zh:"宗教建築",ic:"⛪"},
+ 6:{ko:"경기장·구조물",en:"Stadium / Structure",es:"Estadio / Estructura",pt:"Estádio / Estrutura",ja:"競技場・構造物",de:"Stadion / Bauwerk",fr:"Stade / Structure",it:"Stadio / Struttura",ru:"Стадион / Сооружение",tr:"Stadyum / Yapı",pl:"Stadion / Konstrukcja",zh:"體育場・構造物",ic:"🏟"}};
 function toUnit(mm){ return unit==="m" ? mm : Math.round(mm*3.28084); }
 function fromUnit(v){ return unit==="m" ? v : Math.round(v/3.28084); }
 function fmtH(mm){ return toUnit(mm).toLocaleString() + " " + unit; }
@@ -886,14 +1085,24 @@ let photoToken=0, curPhotoFile=null;
 /* 정답 공개 뒤에만 사진 원본 페이지(저작자·라이선스) 링크를 보여줌 → 플레이 중 높이 검색 방지 */
 function showSrcLink(){
   const a=$("srclink");
-  if(curPhotoFile){ a.href="https://commons.wikimedia.org/wiki/File:"+curPhotoFile; a.textContent="📷 "+t("photo_src"); a.style.display="inline-block"; }
+  if(curPhotoFile){
+    a.href="https://commons.wikimedia.org/wiki/File:"+curPhotoFile;
+    if(window.PORTAL){ a.removeAttribute("href"); }   // 게임 포털 안에서는 바깥 링크 대신 글자만 표시
+    let name=curPhotoFile; try{ name=decodeURIComponent(curPhotoFile); }catch(e){}
+    const c=(window.CREDITS||{})[name];
+    const who=c&&c[0] ? (c[0].length>48?c[0].slice(0,46)+"…":c[0]) : "";
+    a.textContent = c ? "📷 "+(who?who+" · ":"")+(c[1]||"")+" · Wikimedia Commons" : "📷 "+t("photo_src");
+    a.style.display="inline-block";
+  }
   else a.style.display="none";
 }
 const IMG_HOSTS=["https://upload.wikimedia.org","https://thumb.wikimedia.org"];
 function photoURLs(m){
   const out=[];
+  const LOCAL=window.PHOTOS||{};
   for(const [p,r] of (m[5]||[])){
     const t=p.match(/^(.*)\/([^/]+)@(\d+)$/);
+    if(LOCAL[p]) out.push({u:LOCAL[p][0],file:t?t[2]:p.split("/").pop(),r});   // Peakle 사이트에 올려 둔 사진 (가장 빠름)
     if(t) IMG_HOSTS.forEach(hst=>out.push({u:hst+"/wikipedia/commons/thumb/"+t[1]+"/"+t[2]+"/"+t[3]+"px-"+t[2],file:t[2],r}));
     else out.push({u:IMG_HOSTS[0]+"/wikipedia/commons/"+p,file:p.split("/").pop(),r});
   }
@@ -935,7 +1144,7 @@ function renderPhoto(p){
   const img=new Image(); img.src=p.u; img.className="photo"+(r<1.55?" fit":""); img.draggable=false; img.alt="";
   box.appendChild(img);
   const a=document.createElement("span");
-  a.className="mtcredit"; a.textContent="© Wikimedia Commons";
+  a.className="mtcredit"; a.textContent="📷 Wikimedia Commons";
   box.appendChild(a);
   curPhotoFile=p.file;
 }
@@ -994,9 +1203,11 @@ function applyI18n(){
   $("b-share-battle").textContent=t("share"); $("b-share-daily").textContent=t("share");
   $("guess").placeholder=t("guess_ph"); $("unitlbl").textContent=unit;
   $("b-recover").textContent=t("recover_btn"); $("recode").placeholder=t("recover_ph"); renderStats();
+  $("footlinks").innerHTML=(window.PORTAL?[["credits_page","credits.html"]]:[["privacy","legal.html#privacy"],["terms","legal.html#terms"],["contact","legal.html#contact"],["credits_page","credits.html"]])
+    .map(([k,h])=>`<a href="${h.replace(".html",".html?lang="+L)}">${esc(t(k))}</a>`).join("·");
   $("b-login").textContent=t("login_btn"); $("lpw").placeholder=t("pw_ph"); $("b-forgot").textContent=t("forgot"); $("nopwnote").textContent=t("no_pw"); renderPw();
   $("mtcount").textContent="🏔 "+MT.length.toLocaleString()+" "+t("mts");
-  $("langsel").value=L; document.documentElement.lang = L==="pt" ? "pt-BR" : L;
+  $("langsel").value=L; document.documentElement.lang = L==="pt" ? "pt-BR" : L==="zh" ? "zh-Hant" : L;
   $("u-m").classList.toggle("on",unit==="m"); $("u-ft").classList.toggle("on",unit==="ft");
   $("snd-on").classList.toggle("on",sound); $("snd-off").classList.toggle("on",!sound);
 }
@@ -1151,15 +1362,17 @@ function soloSubmit(raw){
     else soloRound();
   },3200);
 }
-const emOf=p=>p>=4500?"🏔️":p>=3500?"⛰️":p>=2000?"🗻":"🪨";
+const emOf=p=>p>=4500?"🟩":p>=3500?"🟨":p>=2000?"🟧":"🟥";
+const cleanURL=()=>location.origin+location.pathname;
 function showDailyResult(res,dn){
   cleanupGame();
   $("dailytitle").textContent=t("daily_title")+" #"+dn;
   $("dailyscore").textContent=res.s.toLocaleString();
   $("dailyemoji").textContent=res.p.map(emOf).join("");
   $("dailydetail").innerHTML=res.p.map((p,i)=>`${t("round")} ${i+1} — ${emOf(p)} ${p.toLocaleString()}${t("pts")}`).join("<br>");
-  $("b-share-daily").onclick=()=>share(STR[L].share_daily(dn,res.s,res.p.map(emOf).join(""))+location.href);
-  screen("daily-result");
+  const st=dailyStreak();
+  $("b-share-daily").onclick=()=>share(STR[L].share_daily(dn,res.s,res.p.map(emOf).join(""))+(st>=2?"🔥 "+t("streak_n")(st)+"\n":"")+cleanURL()+"?c="+res.s+"&d="+dn);
+  screen("daily-result"); showAd("daily"); adBetween("daily_done");
 }
 
 /* ================= 1대1 대결 공통 UI ================= */
@@ -1265,7 +1478,7 @@ function endBattle(myHP,foeHP,foeNick,walkover,mode){
   $("r-myhp").textContent="HP "+Math.max(0,myHP).toLocaleString();
   $("r-foehp").textContent="HP "+Math.max(0,foeHP).toLocaleString();
   const w=draw?t("draw"):win?t("win"):t("lose");
-  $("b-share-battle").onclick=()=>share(STR[L].share_battle(w,localStorage.getItem("pk_nick"),foeNick)+location.href);
+  $("b-share-battle").onclick=()=>share(STR[L].share_battle(w,localStorage.getItem("pk_nick"),foeNick)+cleanURL());
   // 재대결 버튼
   const rb=$("b-rematch");
   rb.disabled = walkover;   // 상대가 나간 경우 재대결 불가
@@ -1273,7 +1486,7 @@ function endBattle(myHP,foeHP,foeNick,walkover,mode){
   $("rematchmsg").textContent = walkover ? t("opp_gone") : "";
   draw?0:win?sndWin():sndLose();
   if(mode==="net") recordBattle(draw?"draws":win?"wins":"losses");
-  screen("result");
+  screen("result"); showAd("result"); adBetween("battle_done");
 }
 $("b-rematch").onclick=()=>{
   if(lastBattleMode==="bot"){ cleanupGame(); startBotGame(); return; }
@@ -1309,7 +1522,7 @@ async function quickMatch(startTs){
   startTs=startTs||Date.now();
   cleanupGame();
   $("waittitle").textContent=t("matching"); $("waitdesc").textContent=t("matching_desc");
-  $("roomcodebox").style.display="none"; $("b-copycode").style.display="none";
+  $("roomcodebox").style.display="none"; $("b-copycode").style.display="none"; $("b-invite").style.display="none";
   screen("wait");
   const me={mode:"net",fb:true,phase:"matching",matching:true,startTs};
   G=me;
@@ -1396,6 +1609,8 @@ async function createFriendRoom(){
   $("roomcodebox").style.display="block"; $("roomcodebox").textContent=roomId;
   $("b-copycode").style.display="block";
   $("b-copycode").onclick=()=>{navigator.clipboard.writeText(roomId).then(()=>toast(t("copied")));};
+  $("b-invite").style.display="block"; $("b-invite").textContent=t("invite_copy");
+  $("b-invite").onclick=()=>share(t("invite_text")(roomId)+"\n"+cleanURL()+"?room="+roomId);
   screen("wait");
   enterRoom(roomId,true,{});
 }
@@ -1577,6 +1792,30 @@ function netRevealPhase(room,me,foe){
   setTimeout(()=>{ if(G===g0&&G.phase==="reveal") G.phase="idle"; },4300);
 }
 
+/* ================= 광고 =================
+   AdSense 승인 전에는 아무것도 하지 않음. 승인 후 ADS.client 와 슬롯 번호만 넣으면 켜짐.
+   - 배너: 홈 아래, 데일리 결과, 대결 결과 (플레이 중에는 절대 표시 안 함)
+   - 전면 광고(H5 Games Ads): 판이 끝난 뒤에만 (ADS.h5 = true 일 때) */
+const ADS = { client:"", h5:false, slots:{ home:"", daily:"", result:"" } };
+let adsLoaded=false;
+function loadAdsScript(){
+  if(adsLoaded || !ADS.client) return; adsLoaded=true;
+  const sc=document.createElement("script"); sc.async=true; sc.crossOrigin="anonymous";
+  sc.src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client="+encodeURIComponent(ADS.client);
+  if(ADS.h5){ sc.dataset.adFrequencyHint="60s"; }
+  document.head.appendChild(sc);
+  window.adsbygoogle=window.adsbygoogle||[];
+  if(ADS.h5){ window.adBreak=window.adConfig=function(o){ window.adsbygoogle.push(o); }; window.adConfig({preloadAdBreaks:"on"}); }
+}
+function showAd(where){
+  const slot=ADS.slots[where], box=$("ad-"+where);
+  if(!ADS.client || !slot || !box || box.dataset.done) return;
+  loadAdsScript(); box.dataset.done="1";
+  box.innerHTML=`<ins class="adsbygoogle" style="display:block" data-ad-client="${esc(ADS.client)}" data-ad-slot="${esc(slot)}" data-ad-format="auto" data-full-width-responsive="true"></ins>`;
+  try{ (window.adsbygoogle=window.adsbygoogle||[]).push({}); }catch(e){}
+}
+function adBetween(name){ if(ADS.client && ADS.h5 && window.adBreak) try{ window.adBreak({type:"next",name}); }catch(e){} }
+
 /* ================= 공유 ================= */
 function share(text){
   if(navigator.share){ navigator.share({text}).catch(()=>{}); }
@@ -1647,6 +1886,22 @@ $("snd-off").onclick=()=>{sound=false;localStorage.setItem("pk_sound","0");apply
 $("joincode").addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"");});
 
 applyI18n();
+showAd("home");
+/* 공유 링크로 들어온 경우: ?c=점수&d=회차 (데일리 도전장), ?room=코드 (대결 초대) */
+(function(){
+  const qp=new URLSearchParams(location.search);
+  const c=parseInt(qp.get("c"),10), d=parseInt(qp.get("d"),10), room=(qp.get("room")||"").toUpperCase();
+  if(qp.has("c")||qp.has("room")) history.replaceState(null,"",location.pathname);
+  if(Number.isFinite(c) && c>=0 && c<=25000){
+    $("chaltxt").textContent = d===dailyNum() ? t("chal_today")(c) : t("chal_other");
+    $("b-chal").textContent=t("chal_go"); $("b-chal").onclick=()=>$("b-daily").click();
+    $("chalbox").style.display="block";
+  }
+  if(/^[A-Z0-9]{5}$/.test(room)){
+    $("joincode").value=room; screen("battle"); toast(t("invite_hint"));
+    if(nickname() && !nickProblem(nickname())) setTimeout(()=>joinRoom(),400);   // 닉네임이 이미 있으면 바로 입장
+  }
+})();
 /* 시작 시: 이 기기가 가진 닉네임이 아직 내 것인지 확인 → 기록 불러오기 */
 authReady.then(async()=>{
   if(myNickKey){
@@ -1654,7 +1909,7 @@ authReady.then(async()=>{
   }
   loadStats(); if(nickname()) nickStatus();
 });
-if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+if(!window.PORTAL && "serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 </script>
 </body>
 </html>

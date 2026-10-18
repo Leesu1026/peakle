@@ -1,0 +1,48 @@
+# 매일 쇼츠 1개 자동 제작 → (연결돼 있으면) 유튜브 자동 업로드 → 이번 주 묶음(틱톡용)을 Releases 에 보관
+# 켜는 법: 저장소 Settings → Secrets and variables → Actions → Variables 에 SHORTS_ENABLED = true
+name: Shorts
+
+on:
+  schedule:
+    - cron: "0 3 * * *"      # 매일 12:00 (한국 시간)
+  workflow_dispatch:
+    inputs:
+      lang:
+        description: "영상 언어 (en, ko, es, pt, ja)"
+        default: "en"
+
+permissions:
+  contents: write
+
+jobs:
+  short:
+    if: vars.SHORTS_ENABLED == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      YT_CLIENT_ID: ${{ secrets.YT_CLIENT_ID }}
+      YT_CLIENT_SECRET: ${{ secrets.YT_CLIENT_SECRET }}
+      YT_REFRESH_TOKEN: ${{ secrets.YT_REFRESH_TOKEN }}
+      LANG_CODE: ${{ github.event.inputs.lang || 'en' }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq fonts-noto-cjk ffmpeg
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow requests
+      - name: Make video
+        run: |
+          D=$(date -u +%F)
+          mkdir -p out
+          python tools/make_short.py --date "$D" --lang "$LANG_CODE" --out "out/peakle-$D-$LANG_CODE.mp4" --meta-out "out/peakle-$D-$LANG_CODE.json"
+      - name: Upload to YouTube
+        if: env.YT_REFRESH_TOKEN != ''
+        run: python tools/upload_youtube.py out/*.mp4
+      - name: Keep this week's videos for TikTok (Releases)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="shorts-$(date -u +%G-W%V)"
+          gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --prerelease --title "Shorts $(date -u +%G-W%V)" --notes "이번 주 쇼츠 영상 (틱톡에 예약 업로드용). 설명란 문구는 같은 이름의 .json 파일에 있어요."
+          gh release upload "$TAG" out/* --clobber

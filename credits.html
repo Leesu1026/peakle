@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Peakle — Photo credits</title>
+<meta name="description" content="Authors and licenses of the Wikimedia Commons photos used in Peakle.">
+<link rel="icon" type="image/png" href="icon-192.png">
+<style>
+:root{--sky0:#0B1026;--sky1:#17244A;--snow:#F2F6F9;--ice:#BFE3EE;--dim:#8FA3BF;--glow:#FF8E6E;--card:rgba(255,255,255,.055);--line:rgba(191,227,238,.16)}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Apple SD Gothic Neo','Noto Sans KR','Hiragino Sans','Malgun Gothic',sans-serif;background:linear-gradient(180deg,var(--sky0),var(--sky1));color:var(--snow);min-height:100vh;line-height:1.55}
+.wrap{max-width:900px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-weight:900;font-size:26px;letter-spacing:.04em;color:var(--snow);text-decoration:none}
+.logo b{color:var(--glow)}
+h1{font-size:22px;margin:18px 0 4px}
+p{color:var(--dim);font-size:14px;margin:4px 0 14px}
+input{width:100%;background:var(--card);color:var(--snow);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:15px;margin-bottom:12px}
+.list{display:grid;gap:8px}
+.item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;word-break:break-word}
+.item b{display:block;margin-bottom:2px}
+.item a{color:var(--ice)}
+.meta{color:var(--dim);font-size:13px}
+.back{color:var(--ice);font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><a class="logo" href="./">PE<b>A</b>KLE</a><a class="back" id="back" href="./"></a></header>
+  <h1 id="title"></h1>
+  <p id="intro"></p>
+  <input id="q" type="search" autocomplete="off">
+  <div class="list" id="list"></div>
+</div>
+<script src="mountains.js"></script>
+<script src="photos.js" onerror="window.PHOTOS={};window.CREDITS={}"></script>
+<script>
+const T={
+ ko:["사진 출처","Peakle의 모든 건축물 사진은 Wikimedia Commons의 자유 라이선스 사진이에요. 사진마다 촬영자와 라이선스를 밝혀요.","건축물 이름으로 찾기","게임으로 돌아가기","촬영자 정보 준비 중"],
+ en:["Photo credits","Every building photo in Peakle is a freely licensed image from Wikimedia Commons. The author and license of each photo are listed below.","Search by building name","Back to the game","Author details coming soon"],
+ es:["Créditos de fotos","Todas las fotos de Peakle son imágenes con licencia libre de Wikimedia Commons. Aquí aparecen el autor y la licencia de cada una.","Buscar por nombre","Volver al juego","Datos del autor próximamente"],
+ pt:["Créditos das fotos","Todas as fotos do Peakle são imagens de licença livre do Wikimedia Commons. Abaixo estão o autor e a licença de cada uma.","Buscar pelo nome","Voltar ao jogo","Dados do autor em breve"],
+ ja:["写真クレジット","Peakleの建築物の写真はすべてWikimedia Commonsの自由ライセンス画像です。写真ごとの撮影者とライセンスを掲載しています。","建築物の名前で検索","ゲームに戻る","撮影者情報は準備中です"],
+ de:["Bildnachweise","Alle Bauwerksfotos in Peakle sind frei lizenzierte Bilder aus Wikimedia Commons. Hier stehen Urheber und Lizenz jedes Bildes.","Nach Bauwerk suchen","Zurück zum Spiel","Urheberangaben folgen"],
+ fr:["Crédits photo","Toutes les photos de Peakle sont des images sous licence libre de Wikimedia Commons. L'auteur et la licence de chaque photo figurent ci-dessous.","Rechercher un monument","Retour au jeu","Informations sur l'auteur à venir"],
+ it:["Crediti foto","Tutte le foto di Peakle sono immagini con licenza libera di Wikimedia Commons. Qui sotto trovi autore e licenza di ciascuna.","Cerca per nome","Torna al gioco","Dati dell'autore in arrivo"],
+ ru:["Авторы фото","Все фотографии в Peakle — свободно лицензированные изображения с Wikimedia Commons. Ниже указаны автор и лицензия каждого фото.","Поиск по названию","Вернуться в игру","Сведения об авторе скоро появятся"],
+ tr:["Fotoğraf kaynakları","Peakle'daki tüm fotoğraflar Wikimedia Commons'tan alınan özgür lisanslı görsellerdir. Her fotoğrafın yazarı ve lisansı aşağıdadır.","Yapı adına göre ara","Oyuna dön","Yazar bilgisi yakında"],
+ pl:["Autorzy zdjęć","Wszystkie zdjęcia w Peakle to obrazy na wolnych licencjach z Wikimedia Commons. Poniżej autor i licencja każdego z nich.","Szukaj po nazwie","Wróć do gry","Dane autora wkrótce"],
+ zh:["照片來源","Peakle 的所有建築照片都是 Wikimedia Commons 的自由授權圖片,以下列出每張照片的攝影者與授權。","以建築名稱搜尋","回到遊戲","攝影者資訊準備中"]
+};
+function pick(){
+  const q=new URLSearchParams(location.search).get("lang"); if(q&&T[q]) return q;
+  try{ const s=localStorage.getItem("pk_lang"); if(s&&T[s]) return s; }catch(e){}
+  for(const l of (navigator.languages||[navigator.language||"en"])){ const b=String(l).split("-")[0].toLowerCase(); if(T[b]) return b; }
+  return "en";
+}
+const L=pick(), t=T[L];
+document.documentElement.lang=L==="pt"?"pt-BR":L==="zh"?"zh-Hant":L;
+title.textContent=t[0]; intro.textContent=t[1]; q.placeholder=t[2]; back.textContent=t[3];
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const C=window.CREDITS||{};
+/* 건축물 이름 (높이는 표시하지 않음) + 사진별 출처 */
+const rows=[];
+for(const m of window.MOUNTAINS){
+  const name=(L==="ko"&&m[3])?m[3]+" ("+m[0]+")":m[0];
+  for(const [p] of m[5]){
+    const mm=p.match(/^(.*)\/([^/]+)@(\d+)$/); const enc=mm?mm[2]:p.split("/").pop();
+    let file=enc; try{ file=decodeURIComponent(enc); }catch(e){}
+    rows.push({name,file,enc,c:C[file]});
+  }
+}
+rows.sort((a,b)=>a.name.localeCompare(b.name));
+function draw(){
+  const k=q.value.trim().toLowerCase();
+  list.innerHTML=rows.filter(r=>!k||r.name.toLowerCase().includes(k)).map(r=>{
+    const lic=r.c&&r.c[1]?(r.c[2]?`<a href="${esc(r.c[2])}" target="_blank" rel="noopener">${esc(r.c[1])}</a>`:esc(r.c[1])):"";
+    const who=r.c&&r.c[0]?esc(r.c[0]):t[4];
+    return `<div class="item"><b>${esc(r.name)}</b><span class="meta">📷 ${who}${lic?" · "+lic:""} · <a href="https://commons.wikimedia.org/wiki/File:${r.enc}" target="_blank" rel="noopener">Wikimedia Commons</a></span></div>`;
+  }).join("");
+}
+q.oninput=draw; draw();
+</script>
+</body>
+</html>

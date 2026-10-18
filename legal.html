@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Peakle — Privacy · Terms · Contact</title>
+<meta name="description" content="Peakle privacy policy, terms of use and contact.">
+<link rel="icon" type="image/png" href="icon-192.png">
+<style>
+:root{--sky0:#0B1026;--sky1:#17244A;--snow:#F2F6F9;--ice:#BFE3EE;--dim:#8FA3BF;--glow:#FF8E6E;--card:rgba(255,255,255,.055);--line:rgba(191,227,238,.16)}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Apple SD Gothic Neo','Noto Sans KR','Hiragino Sans','Malgun Gothic',sans-serif;background:linear-gradient(180deg,var(--sky0),var(--sky1));color:var(--snow);min-height:100vh;line-height:1.65}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 60px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-weight:900;font-size:26px;letter-spacing:.04em;color:var(--snow);text-decoration:none}
+.logo b{color:var(--glow)}
+select{background:var(--card);color:var(--snow);border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:14px}
+select option{color:#000}
+nav{margin:18px 0 8px;display:flex;gap:8px;flex-wrap:wrap}
+nav a{color:var(--ice);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:14px}
+nav a:hover{background:var(--card)}
+section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 18px 8px;margin:16px 0;scroll-margin-top:12px}
+h1{font-size:22px;margin:0 0 4px}
+h2{font-size:16px;margin:18px 0 6px;color:var(--ice)}
+p,li{font-size:14.5px}
+ul{padding-left:20px;margin:6px 0}
+.upd{color:var(--dim);font-size:13px;margin:0 0 10px}
+a{color:var(--ice)}
+.btn{display:inline-block;background:var(--glow);color:#1a1020;font-weight:700;text-decoration:none;border-radius:12px;padding:10px 16px;margin:6px 0 14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="logo" href="./" id="home">PE<b>A</b>KLE</a>
+    <select id="lang" aria-label="Language">
+      <option value="ko">한국어</option><option value="en">English</option><option value="es">Español</option>
+      <option value="pt">Português (Brasil)</option><option value="ja">日本語</option><option value="de">Deutsch</option><option value="fr">Français</option>
+      <option value="it">Italiano</option><option value="ru">Русский</option><option value="tr">Türkçe</option><option value="pl">Polski</option><option value="zh">繁體中文</option>
+    </select>
+  </header>
+  <nav id="nav"></nav>
+  <main id="main"></main>
+</div>
+<script>
+/* 문의 메일 주소가 정해지면 여기에 넣으면 문의 칸에 표시됨 */
+const CONTACT_EMAIL = "";
+const ISSUES = "https://github.com/Leesu1026/peakle/issues";
+const ADS_SETTINGS = "https://adssettings.google.com";
+const GOOGLE_ADS_POLICY = "https://policies.google.com/technologies/partner-sites";
+const FIREBASE_PRIVACY = "https://firebase.google.com/support/privacy";
+
+const T = {
+ko:{nav:["개인정보처리방침","이용약관","문의","사진 출처","게임으로 돌아가기"], upd:"시행일: 2026년 10월 19일",
+ privacy:{t:"개인정보처리방침", intro:"Peakle(이하 ‘게임’)은 개인 개발자가 운영하는 무료 웹게임이에요. 이 방침은 게임이 어떤 정보를 왜 쓰는지 설명해요.", s:[
+  ["수집하는 정보",["직접 정한 닉네임","기기마다 자동으로 만들어지는 익명 계정 ID (Google Firebase 인증)","비밀번호를 설정한 경우의 로그인 정보 — 비밀번호는 Google이 암호화해 보관하며 운영자도 볼 수 없어요","게임 기록 (대결 전적, 데일리 점수)","대결 중의 임시 방 정보 (게임이 끝나면 삭제)","기기 안에만 저장되는 설정 (언어, 단위, 효과음, 데일리 진행 상황)"]],
+  ["수집하지 않는 정보","이름, 이메일 주소, 전화번호, 위치 정보는 수집하지 않아요."],
+  ["정보를 쓰는 목적","닉네임 중복 방지, 1대1 대결 진행, 기록 저장과 다른 기기에서 이어하기, 부정행위 방지에만 써요."],
+  ["함께 일하는 외부 서비스",["Google Firebase: 서버, 로그인, 데이터 저장 (<a href='"+FIREBASE_PRIVACY+"'>Firebase 개인정보 안내</a>)","Wikimedia Commons: 건축물 사진을 불러올 때 위키미디어 서버가 접속 정보(IP 주소)를 받을 수 있어요","광고(도입 시): Google 등 광고 파트너가 쿠키를 사용해 광고를 보여줄 수 있어요 (<a href='"+GOOGLE_ADS_POLICY+"'>Google의 데이터 사용 방식</a>). 유럽·영국·스위스 이용자에게는 먼저 동의를 받아요. 맞춤 광고는 <a href='"+ADS_SETTINGS+"'>Google 광고 설정</a>에서 끌 수 있어요","방문 통계(도입 시): 쿠키를 쓰지 않는 Cloudflare Web Analytics로 방문 수만 집계해요"]],
+  ["보관 기간과 삭제","닉네임과 기록은 게임을 이용하는 동안 보관해요. 삭제를 원하면 문의처로 닉네임을 알려 주세요. 기기에 저장된 설정은 브라우저 데이터를 지우면 사라져요."],
+  ["어린이","이 게임은 만 13세 미만 어린이를 대상으로 하지 않으며, 어린이의 개인정보를 알면서 수집하지 않아요."],
+  ["변경","방침이 바뀌면 이 페이지에 시행일과 함께 알려요."]]},
+ terms:{t:"이용약관", intro:"게임을 이용하면 아래 내용에 동의하는 것으로 봐요.", s:[
+  ["서비스","Peakle은 무료로, 있는 그대로 제공되는 게임이에요. 기능은 예고 없이 바뀌거나 중단될 수 있어요."],
+  ["이용자의 약속",["다른 사람을 사칭하거나 욕설·혐오 표현이 담긴 닉네임을 쓰지 않기","버그를 악용하거나 서버를 공격하거나 자동 프로그램으로 플레이하지 않기","다른 이용자의 계정이나 기록에 손대지 않기","이를 어기면 닉네임과 기록이 삭제될 수 있어요"]],
+  ["사진과 데이터","건축물 사진은 Wikimedia Commons의 자유 라이선스 사진이며, 촬영자와 라이선스는 정답 공개 후와 ‘사진 출처’ 페이지에 표시돼요. 높이 정보는 공개 자료를 바탕으로 했지만 오류가 있을 수 있어요."],
+  ["책임의 한계","법이 허용하는 범위에서, 게임 이용으로 생긴 손해에 대해 운영자는 책임지지 않아요."],
+  ["변경","약관이 바뀌면 이 페이지에 시행일과 함께 알려요."]]},
+ contact:{t:"문의", intro:"버그 제보, 기록 삭제 요청, 제휴 문의는 아래로 보내 주세요.", btn:"GitHub에 문의 남기기", mail:"이메일: "}},
+
+en:{nav:["Privacy","Terms","Contact","Photo credits","Back to the game"], upd:"Effective: October 19, 2026",
+ privacy:{t:"Privacy Policy", intro:"Peakle (“the game”) is a free web game run by an independent developer. This policy explains what information the game uses and why.", s:[
+  ["What we collect",["The nickname you choose","An anonymous account ID created automatically for each device (Google Firebase Authentication)","Login details if you set a password — the password is stored encrypted by Google and is never visible to us","Game records (battle results, daily scores)","Temporary battle room data (deleted after the game)","Settings stored only on your device (language, unit, sound, daily progress)"]],
+  ["What we don't collect","We do not collect your name, email address, phone number or location."],
+  ["Why we use it","Only to keep nicknames unique, run 1v1 battles, save your records and let you continue on another device, and prevent cheating."],
+  ["Third-party services",["Google Firebase: servers, login and data storage (<a href='"+FIREBASE_PRIVACY+"'>Firebase privacy</a>)","Wikimedia Commons: when building photos load from Wikimedia servers, they may receive your connection information (IP address)","Advertising (when enabled): Google and other ad partners may use cookies to show ads (<a href='"+GOOGLE_ADS_POLICY+"'>how Google uses data</a>). Visitors in the EEA, UK and Switzerland are asked for consent first. You can turn off personalized ads in <a href='"+ADS_SETTINGS+"'>Google Ad Settings</a>","Analytics (when enabled): visit counts only, via cookie-free Cloudflare Web Analytics"]],
+  ["Retention and deletion","Nicknames and records are kept while you use the game. To have them deleted, send us your nickname via the contact below. Settings on your device are removed when you clear your browser data."],
+  ["Children","The game is not directed at children under 13, and we do not knowingly collect personal information from them."],
+  ["Changes","If this policy changes, we will post the update here with a new effective date."]]},
+ terms:{t:"Terms of Use", intro:"By using the game you agree to the following.", s:[
+  ["The service","Peakle is provided free of charge and “as is”. Features may change or stop without notice."],
+  ["Your commitments",["Don't impersonate others or use nicknames with insults or hate speech","Don't exploit bugs, attack the servers or play with bots or scripts","Don't tamper with other players' accounts or records","Breaking these rules may lead to your nickname and records being removed"]],
+  ["Photos and data","Building photos are freely licensed images from Wikimedia Commons; the author and license are shown after each answer and on the Photo credits page. Heights are based on public sources but may contain errors."],
+  ["Limitation of liability","To the extent permitted by law, the operator is not liable for any damage arising from use of the game."],
+  ["Changes","If these terms change, we will post the update here with a new effective date."]]},
+ contact:{t:"Contact", intro:"For bug reports, data deletion requests or partnership inquiries, reach us below.", btn:"Leave a message on GitHub", mail:"Email: "}},
+
+es:{nav:["Privacidad","Términos","Contacto","Créditos de fotos","Volver al juego"], upd:"Vigente desde: 19 de octubre de 2026",
+ privacy:{t:"Política de privacidad", intro:"Peakle (“el juego”) es un juego web gratuito creado por un desarrollador independiente. Esta política explica qué información usa el juego y por qué.", s:[
+  ["Qué recopilamos",["El apodo que eliges","Un ID de cuenta anónimo creado automáticamente para cada dispositivo (Google Firebase Authentication)","Datos de inicio de sesión si creas una contraseña — Google la guarda cifrada y nosotros nunca podemos verla","Registros de juego (resultados de duelos, puntuaciones diarias)","Datos temporales de las salas de duelo (se borran al terminar)","Ajustes guardados solo en tu dispositivo (idioma, unidad, sonido, progreso diario)"]],
+  ["Qué no recopilamos","No recopilamos tu nombre, correo electrónico, teléfono ni ubicación."],
+  ["Para qué lo usamos","Solo para que los apodos sean únicos, jugar duelos 1 vs 1, guardar tus registros y continuar en otro dispositivo, y evitar trampas."],
+  ["Servicios de terceros",["Google Firebase: servidores, inicio de sesión y almacenamiento (<a href='"+FIREBASE_PRIVACY+"'>privacidad de Firebase</a>)","Wikimedia Commons: al cargar fotos desde sus servidores, Wikimedia puede recibir tu información de conexión (dirección IP)","Publicidad (cuando se active): Google y otros socios pueden usar cookies para mostrar anuncios (<a href='"+GOOGLE_ADS_POLICY+"'>cómo usa Google los datos</a>). En el EEE, Reino Unido y Suiza pedimos tu consentimiento primero. Puedes desactivar los anuncios personalizados en <a href='"+ADS_SETTINGS+"'>Configuración de anuncios de Google</a>","Estadísticas (cuando se activen): solo número de visitas, con Cloudflare Web Analytics sin cookies"]],
+  ["Conservación y eliminación","Guardamos apodos y registros mientras uses el juego. Para borrarlos, envíanos tu apodo por el contacto de abajo. Los ajustes del dispositivo se borran al limpiar los datos del navegador."],
+  ["Menores","El juego no está dirigido a menores de 13 años y no recopilamos a sabiendas datos personales de ellos."],
+  ["Cambios","Si esta política cambia, publicaremos la actualización aquí con una nueva fecha."]]},
+ terms:{t:"Términos de uso", intro:"Al usar el juego aceptas lo siguiente.", s:[
+  ["El servicio","Peakle se ofrece gratis y “tal cual”. Las funciones pueden cambiar o detenerse sin aviso."],
+  ["Tus compromisos",["No suplantar a otros ni usar apodos con insultos o discursos de odio","No aprovechar errores, atacar los servidores ni jugar con bots o scripts","No manipular cuentas ni registros de otros jugadores","Incumplir estas reglas puede suponer la eliminación de tu apodo y registros"]],
+  ["Fotos y datos","Las fotos son imágenes con licencia libre de Wikimedia Commons; el autor y la licencia se muestran tras cada respuesta y en la página de créditos. Las alturas se basan en fuentes públicas pero pueden contener errores."],
+  ["Limitación de responsabilidad","En la medida en que la ley lo permita, el operador no es responsable de daños derivados del uso del juego."],
+  ["Cambios","Si estos términos cambian, publicaremos la actualización aquí con una nueva fecha."]]},
+ contact:{t:"Contacto", intro:"Para reportar errores, pedir la eliminación de datos o proponer colaboraciones, escríbenos aquí.", btn:"Dejar un mensaje en GitHub", mail:"Correo: "}},
+
+pt:{nav:["Privacidade","Termos","Contato","Créditos das fotos","Voltar ao jogo"], upd:"Vigente a partir de: 19 de outubro de 2026",
+ privacy:{t:"Política de privacidade", intro:"Peakle (“o jogo”) é um jogo web gratuito mantido por um desenvolvedor independente. Esta política explica quais informações o jogo usa e por quê.", s:[
+  ["O que coletamos",["O apelido que você escolhe","Um ID de conta anônimo criado automaticamente para cada aparelho (Google Firebase Authentication)","Dados de login se você criar uma senha — o Google guarda a senha criptografada e nós nunca a vemos","Registros de jogo (resultados de duelos, pontuações diárias)","Dados temporários das salas de duelo (apagados ao fim da partida)","Configurações salvas só no seu aparelho (idioma, unidade, som, progresso diário)"]],
+  ["O que não coletamos","Não coletamos seu nome, e-mail, telefone nem localização."],
+  ["Para que usamos","Apenas para manter apelidos únicos, rodar duelos 1 x 1, salvar seus registros e continuar em outro aparelho, e evitar trapaças."],
+  ["Serviços de terceiros",["Google Firebase: servidores, login e armazenamento (<a href='"+FIREBASE_PRIVACY+"'>privacidade do Firebase</a>)","Wikimedia Commons: ao carregar fotos dos servidores da Wikimedia, ela pode receber seus dados de conexão (endereço IP)","Publicidade (quando ativada): o Google e outros parceiros podem usar cookies para exibir anúncios (<a href='"+GOOGLE_ADS_POLICY+"'>como o Google usa dados</a>). No EEE, Reino Unido e Suíça pedimos consentimento antes. Você pode desativar anúncios personalizados nas <a href='"+ADS_SETTINGS+"'>Configurações de anúncios do Google</a>","Estatísticas (quando ativadas): apenas contagem de visitas, com o Cloudflare Web Analytics sem cookies"]],
+  ["Retenção e exclusão","Guardamos apelidos e registros enquanto você usa o jogo. Para excluí-los, envie seu apelido pelo contato abaixo. As configurações do aparelho somem ao limpar os dados do navegador."],
+  ["Crianças","O jogo não é direcionado a menores de 13 anos e não coletamos intencionalmente dados pessoais deles."],
+  ["Alterações","Se esta política mudar, publicaremos a atualização aqui com uma nova data."]]},
+ terms:{t:"Termos de uso", intro:"Ao usar o jogo, você concorda com o seguinte.", s:[
+  ["O serviço","O Peakle é oferecido gratuitamente e “como está”. Os recursos podem mudar ou parar sem aviso."],
+  ["Seus compromissos",["Não se passar por outras pessoas nem usar apelidos com ofensas ou discurso de ódio","Não explorar bugs, atacar os servidores nem jogar com bots ou scripts","Não mexer em contas ou registros de outros jogadores","Descumprir essas regras pode levar à exclusão do seu apelido e registros"]],
+  ["Fotos e dados","As fotos são imagens de licença livre do Wikimedia Commons; autor e licença aparecem após cada resposta e na página de créditos. As alturas vêm de fontes públicas, mas podem conter erros."],
+  ["Limitação de responsabilidade","Na medida permitida por lei, o operador não se responsabiliza por danos decorrentes do uso do jogo."],
+  ["Alterações","Se estes termos mudarem, publicaremos a atualização aqui com uma nova data."]]},
+ contact:{t:"Contato", intro:"Para relatar bugs, pedir exclusão de dados ou propor parcerias, fale com a gente aqui.", btn:"Deixar uma mensagem no GitHub", mail:"E-mail: "}},
+
+ja:{nav:["プライバシー","利用規約","お問い合わせ","写真クレジット","ゲームに戻る"], upd:"施行日:2026年10月19日",
+ privacy:{t:"プライバシーポリシー", intro:"Peakle(以下「本ゲーム」)は個人開発者が運営する無料のウェブゲームです。本ポリシーでは、本ゲームがどの情報をなぜ使うのかを説明します。", s:[
+  ["取得する情報",["ご自身で決めたニックネーム","端末ごとに自動で作成される匿名アカウントID(Google Firebase Authentication)","パスワードを設定した場合のログイン情報 — パスワードはGoogleが暗号化して保管し、運営者も見ることはできません","ゲームの記録(対戦成績、デイリーのスコア)","対戦中の一時的なルーム情報(ゲーム終了後に削除)","端末内にのみ保存される設定(言語、単位、効果音、デイリーの進行状況)"]],
+  ["取得しない情報","氏名、メールアドレス、電話番号、位置情報は取得しません。"],
+  ["利用目的","ニックネームの重複防止、1対1対戦の進行、記録の保存と別の端末での引き継ぎ、不正行為の防止のためだけに使います。"],
+  ["外部サービス",["Google Firebase:サーバー、ログイン、データ保存(<a href='"+FIREBASE_PRIVACY+"'>Firebaseのプライバシー</a>)","Wikimedia Commons:建築物の写真をウィキメディアのサーバーから読み込む際、接続情報(IPアドレス)が送られることがあります","広告(導入時):Googleなどの広告パートナーがCookieを使って広告を表示することがあります(<a href='"+GOOGLE_ADS_POLICY+"'>Googleによるデータの使用</a>)。欧州経済領域・英国・スイスの方には事前に同意を求めます。パーソナライズ広告は<a href='"+ADS_SETTINGS+"'>Googleの広告設定</a>で無効にできます","アクセス解析(導入時):Cookieを使わないCloudflare Web Analyticsで訪問数のみ集計します"]],
+  ["保存期間と削除","ニックネームと記録はご利用中は保存します。削除をご希望の場合は、下記お問い合わせ先にニックネームをお知らせください。端末内の設定はブラウザのデータを消去すると消えます。"],
+  ["子ども","本ゲームは13歳未満の子どもを対象としておらず、子どもの個人情報を意図的に取得することはありません。"],
+  ["変更","本ポリシーを変更する場合は、施行日とともにこのページでお知らせします。"]]},
+ terms:{t:"利用規約", intro:"本ゲームを利用することで、以下に同意したものとみなします。", s:[
+  ["サービス","Peakleは無料で、現状のまま提供されます。機能は予告なく変更または終了することがあります。"],
+  ["利用者の約束",["他人になりすましたり、暴言・差別表現を含むニックネームを使わないこと","バグの悪用、サーバーへの攻撃、自動プログラムでのプレイをしないこと","他の利用者のアカウントや記録に手を加えないこと","違反した場合、ニックネームと記録が削除されることがあります"]],
+  ["写真とデータ","建築物の写真はWikimedia Commonsの自由ライセンス画像です。撮影者とライセンスは正解の表示後と「写真クレジット」ページに記載しています。高さは公開資料に基づいていますが、誤りが含まれる場合があります。"],
+  ["免責","法律で認められる範囲で、本ゲームの利用により生じた損害について運営者は責任を負いません。"],
+  ["変更","本規約を変更する場合は、施行日とともにこのページでお知らせします。"]]},
+ contact:{t:"お問い合わせ", intro:"不具合の報告、データ削除のご依頼、提携のご相談は以下からどうぞ。", btn:"GitHubで問い合わせる", mail:"メール:"}},
+
+de:{nav:["Datenschutz","Nutzungsbedingungen","Kontakt","Bildnachweise","Zurück zum Spiel"], upd:"Gültig ab: 19. Oktober 2026",
+ privacy:{t:"Datenschutzerklärung", intro:"Peakle („das Spiel“) ist ein kostenloses Webspiel eines unabhängigen Entwicklers. Diese Erklärung beschreibt, welche Daten das Spiel nutzt und warum.", s:[
+  ["Welche Daten wir erheben",["Den von dir gewählten Spitznamen","Eine anonyme Konto-ID, die pro Gerät automatisch erstellt wird (Google Firebase Authentication)","Anmeldedaten, falls du ein Passwort festlegst — das Passwort speichert Google verschlüsselt; wir können es nie sehen","Spielstatistik (Duellergebnisse, tägliche Punktzahlen)","Vorübergehende Daten von Duellräumen (nach dem Spiel gelöscht)","Nur auf deinem Gerät gespeicherte Einstellungen (Sprache, Einheit, Ton, täglicher Fortschritt)"]],
+  ["Was wir nicht erheben","Wir erheben weder Namen noch E-Mail-Adresse, Telefonnummer oder Standort."],
+  ["Wozu wir die Daten nutzen","Nur um Spitznamen eindeutig zu halten, 1-gegen-1-Duelle durchzuführen, deine Statistik zu speichern und auf anderen Geräten fortzusetzen sowie Betrug zu verhindern."],
+  ["Dienste Dritter",["Google Firebase: Server, Anmeldung und Datenspeicherung (<a href='"+FIREBASE_PRIVACY+"'>Firebase-Datenschutz</a>)","Wikimedia Commons: Beim Laden von Bildern von Wikimedia-Servern können diese deine Verbindungsdaten (IP-Adresse) erhalten","Werbung (sobald aktiviert): Google und andere Werbepartner können Cookies verwenden, um Anzeigen zu zeigen (<a href='"+GOOGLE_ADS_POLICY+"'>wie Google Daten nutzt</a>). Besucher aus EWR, Großbritannien und der Schweiz werden vorher um Einwilligung gebeten. Personalisierte Werbung kannst du in den <a href='"+ADS_SETTINGS+"'>Google-Anzeigeneinstellungen</a> abschalten","Statistik (sobald aktiviert): nur Besucherzahlen über das cookiefreie Cloudflare Web Analytics"]],
+  ["Speicherdauer und Löschung","Spitznamen und Statistik bleiben gespeichert, solange du das Spiel nutzt. Für eine Löschung schicke uns deinen Spitznamen über den Kontakt unten. Einstellungen auf dem Gerät verschwinden, wenn du die Browserdaten löschst."],
+  ["Kinder","Das Spiel richtet sich nicht an Kinder unter 13 Jahren, und wir erheben wissentlich keine personenbezogenen Daten von ihnen."],
+  ["Änderungen","Ändert sich diese Erklärung, veröffentlichen wir sie hier mit neuem Datum."]]},
+ terms:{t:"Nutzungsbedingungen", intro:"Mit der Nutzung des Spiels stimmst du Folgendem zu.", s:[
+  ["Der Dienst","Peakle wird kostenlos und „wie besehen“ angeboten. Funktionen können sich ohne Ankündigung ändern oder eingestellt werden."],
+  ["Deine Pflichten",["Gib dich nicht als andere aus und nutze keine Spitznamen mit Beleidigungen oder Hassrede","Nutze keine Fehler aus, greife keine Server an und spiele nicht mit Bots oder Skripten","Greife nicht in Konten oder Statistiken anderer Spieler ein","Bei Verstößen können Spitzname und Statistik gelöscht werden"]],
+  ["Bilder und Daten","Die Bilder sind frei lizenzierte Aufnahmen aus Wikimedia Commons; Urheber und Lizenz werden nach jeder Antwort und auf der Seite Bildnachweise angezeigt. Die Höhen beruhen auf öffentlichen Quellen, können aber Fehler enthalten."],
+  ["Haftungsbeschränkung","Soweit gesetzlich zulässig, haftet der Betreiber nicht für Schäden aus der Nutzung des Spiels."],
+  ["Änderungen","Ändern sich diese Bedingungen, veröffentlichen wir sie hier mit neuem Datum."]]},
+ contact:{t:"Kontakt", intro:"Fehlermeldungen, Löschanfragen oder Kooperationsanfragen bitte hierüber.", btn:"Nachricht auf GitHub hinterlassen", mail:"E-Mail: "}},
+
+fr:{nav:["Confidentialité","Conditions","Contact","Crédits photo","Retour au jeu"], upd:"En vigueur le : 19 octobre 2026",
+ privacy:{t:"Politique de confidentialité", intro:"Peakle (« le jeu ») est un jeu web gratuit géré par un développeur indépendant. Cette politique explique quelles informations le jeu utilise et pourquoi.", s:[
+  ["Ce que nous collectons",["Le pseudo que vous choisissez","Un identifiant de compte anonyme créé automatiquement pour chaque appareil (Google Firebase Authentication)","Les informations de connexion si vous définissez un mot de passe — Google le conserve chiffré et nous ne pouvons jamais le voir","Les données de jeu (résultats des duels, scores quotidiens)","Les données temporaires des salons de duel (supprimées après la partie)","Les réglages enregistrés uniquement sur votre appareil (langue, unité, son, progression du défi)"]],
+  ["Ce que nous ne collectons pas","Nous ne collectons ni votre nom, ni votre adresse e-mail, ni votre numéro de téléphone, ni votre position."],
+  ["Pourquoi nous les utilisons","Uniquement pour garder des pseudos uniques, organiser les duels 1 contre 1, enregistrer vos statistiques et les retrouver sur un autre appareil, et empêcher la triche."],
+  ["Services tiers",["Google Firebase : serveurs, connexion et stockage (<a href='"+FIREBASE_PRIVACY+"'>confidentialité Firebase</a>)","Wikimedia Commons : lors du chargement des photos depuis ses serveurs, Wikimedia peut recevoir vos informations de connexion (adresse IP)","Publicité (une fois activée) : Google et d'autres partenaires peuvent utiliser des cookies pour afficher des annonces (<a href='"+GOOGLE_ADS_POLICY+"'>comment Google utilise les données</a>). Dans l'EEE, au Royaume-Uni et en Suisse, votre consentement est demandé d'abord. Vous pouvez désactiver les annonces personnalisées dans les <a href='"+ADS_SETTINGS+"'>Paramètres des annonces Google</a>","Statistiques (une fois activées) : nombre de visites uniquement, via Cloudflare Web Analytics sans cookies"]],
+  ["Conservation et suppression","Les pseudos et statistiques sont conservés tant que vous utilisez le jeu. Pour les faire supprimer, envoyez-nous votre pseudo via le contact ci-dessous. Les réglages de l'appareil disparaissent si vous effacez les données du navigateur."],
+  ["Enfants","Le jeu ne s'adresse pas aux enfants de moins de 13 ans et nous ne collectons pas sciemment leurs données personnelles."],
+  ["Modifications","Si cette politique change, nous publierons la mise à jour ici avec une nouvelle date."]]},
+ terms:{t:"Conditions d'utilisation", intro:"En utilisant le jeu, vous acceptez ce qui suit.", s:[
+  ["Le service","Peakle est fourni gratuitement et « tel quel ». Les fonctions peuvent changer ou s'arrêter sans préavis."],
+  ["Vos engagements",["Ne pas usurper l'identité d'autrui ni utiliser de pseudos injurieux ou haineux","Ne pas exploiter de bugs, attaquer les serveurs ni jouer avec des bots ou scripts","Ne pas toucher aux comptes ou statistiques des autres joueurs","Tout manquement peut entraîner la suppression de votre pseudo et de vos statistiques"]],
+  ["Photos et données","Les photos sont des images sous licence libre de Wikimedia Commons ; l'auteur et la licence sont affichés après chaque réponse et sur la page Crédits photo. Les hauteurs proviennent de sources publiques mais peuvent comporter des erreurs."],
+  ["Limitation de responsabilité","Dans la mesure permise par la loi, l'exploitant n'est pas responsable des dommages liés à l'utilisation du jeu."],
+  ["Modifications","Si ces conditions changent, nous publierons la mise à jour ici avec une nouvelle date."]]},
+ contact:{t:"Contact", intro:"Pour signaler un bug, demander la suppression de données ou proposer un partenariat, contactez-nous ici.", btn:"Laisser un message sur GitHub", mail:"E-mail : "}},
+
+it:{nav:["Privacy","Termini","Contatti","Crediti foto","Torna al gioco"], upd:"In vigore dal: 19 ottobre 2026",
+ privacy:{t:"Informativa sulla privacy", intro:"Peakle (“il gioco”) è un gioco web gratuito gestito da uno sviluppatore indipendente. Questa informativa spiega quali dati usa il gioco e perché.", s:[
+  ["Dati raccolti",["Il nickname che scegli","Un ID account anonimo creato automaticamente per ogni dispositivo (Google Firebase Authentication)","I dati di accesso se imposti una password — Google la conserva cifrata e noi non possiamo mai vederla","I dati di gioco (risultati dei duelli, punteggi giornalieri)","Dati temporanei delle stanze di duello (cancellati a fine partita)","Impostazioni salvate solo sul tuo dispositivo (lingua, unità, suono, progressi della sfida)"]],
+  ["Dati non raccolti","Non raccogliamo nome, indirizzo e-mail, numero di telefono né posizione."],
+  ["Perché li usiamo","Solo per mantenere unici i nickname, gestire i duelli 1 contro 1, salvare i tuoi dati e ritrovarli su un altro dispositivo, e prevenire imbrogli."],
+  ["Servizi di terze parti",["Google Firebase: server, accesso e archiviazione (<a href='"+FIREBASE_PRIVACY+"'>privacy di Firebase</a>)","Wikimedia Commons: quando le foto vengono caricate dai server Wikimedia, questi possono ricevere i tuoi dati di connessione (indirizzo IP)","Pubblicità (quando attiva): Google e altri partner possono usare cookie per mostrare annunci (<a href='"+GOOGLE_ADS_POLICY+"'>come Google usa i dati</a>). Nel SEE, nel Regno Unito e in Svizzera chiediamo prima il consenso. Puoi disattivare gli annunci personalizzati nelle <a href='"+ADS_SETTINGS+"'>Impostazioni annunci di Google</a>","Statistiche (quando attive): solo il numero di visite, con Cloudflare Web Analytics senza cookie"]],
+  ["Conservazione e cancellazione","Nickname e dati restano finché usi il gioco. Per cancellarli, inviaci il tuo nickname tramite i contatti qui sotto. Le impostazioni sul dispositivo si cancellano svuotando i dati del browser."],
+  ["Minori","Il gioco non è rivolto ai minori di 13 anni e non raccogliamo consapevolmente i loro dati personali."],
+  ["Modifiche","Se l'informativa cambia, pubblicheremo qui l'aggiornamento con una nuova data."]]},
+ terms:{t:"Termini d'uso", intro:"Usando il gioco accetti quanto segue.", s:[
+  ["Il servizio","Peakle è offerto gratuitamente e “così com'è”. Le funzioni possono cambiare o essere sospese senza preavviso."],
+  ["I tuoi impegni",["Non fingerti un'altra persona e non usare nickname offensivi o d'odio","Non sfruttare bug, non attaccare i server e non giocare con bot o script","Non manomettere account o dati di altri giocatori","Chi viola queste regole può vedersi cancellare nickname e dati"]],
+  ["Foto e dati","Le foto sono immagini con licenza libera di Wikimedia Commons; autore e licenza appaiono dopo ogni risposta e nella pagina Crediti foto. Le altezze provengono da fonti pubbliche ma possono contenere errori."],
+  ["Limitazione di responsabilità","Nei limiti consentiti dalla legge, il gestore non è responsabile per danni derivanti dall'uso del gioco."],
+  ["Modifiche","Se questi termini cambiano, pubblicheremo qui l'aggiornamento con una nuova data."]]},
+ contact:{t:"Contatti", intro:"Per segnalare bug, chiedere la cancellazione dei dati o proporre collaborazioni, scrivici qui.", btn:"Lascia un messaggio su GitHub", mail:"E-mail: "}},
+
+ru:{nav:["Конфиденциальность","Условия","Контакты","Авторы фото","Вернуться в игру"], upd:"Действует с 19 октября 2026 г.",
+ privacy:{t:"Политика конфиденциальности", intro:"Peakle («игра») — бесплатная веб-игра независимого разработчика. Здесь объясняется, какие данные использует игра и зачем.", s:[
+  ["Какие данные мы собираем",["Выбранный тобой никнейм","Анонимный ID аккаунта, который автоматически создаётся для каждого устройства (Google Firebase Authentication)","Данные для входа, если ты задал пароль, — Google хранит пароль в зашифрованном виде, мы его никогда не видим","Игровая статистика (результаты дуэлей, очки за задания дня)","Временные данные комнат для дуэлей (удаляются после игры)","Настройки, которые хранятся только на твоём устройстве (язык, единицы, звук, прогресс задания)"]],
+  ["Что мы не собираем","Мы не собираем имя, адрес эл. почты, номер телефона и местоположение."],
+  ["Зачем мы их используем","Только чтобы никнеймы были уникальными, проводить дуэли 1 на 1, сохранять статистику и продолжать игру на другом устройстве, а также бороться с читерством."],
+  ["Сторонние сервисы",["Google Firebase: серверы, вход и хранение данных (<a href='"+FIREBASE_PRIVACY+"'>конфиденциальность Firebase</a>)","Wikimedia Commons: при загрузке фото с серверов Wikimedia им могут передаваться данные о подключении (IP-адрес)","Реклама (после подключения): Google и другие партнёры могут использовать cookie для показа объявлений (<a href='"+GOOGLE_ADS_POLICY+"'>как Google использует данные</a>). Посетителей из ЕЭЗ, Великобритании и Швейцарии мы сначала спрашиваем о согласии. Персонализированную рекламу можно отключить в <a href='"+ADS_SETTINGS+"'>настройках рекламы Google</a>","Статистика (после подключения): только число посещений через Cloudflare Web Analytics без cookie"]],
+  ["Хранение и удаление","Никнеймы и статистика хранятся, пока ты пользуешься игрой. Чтобы удалить их, пришли нам свой никнейм через контакты ниже. Настройки на устройстве удаляются при очистке данных браузера."],
+  ["Дети","Игра не предназначена для детей младше 13 лет, и мы сознательно не собираем их персональные данные."],
+  ["Изменения","Если политика изменится, мы опубликуем обновление здесь с новой датой."]]},
+ terms:{t:"Условия использования", intro:"Пользуясь игрой, ты соглашаешься со следующим.", s:[
+  ["Сервис","Peakle предоставляется бесплатно и «как есть». Функции могут меняться или отключаться без предупреждения."],
+  ["Твои обязательства",["Не выдавать себя за других и не использовать оскорбительные или разжигающие ненависть никнеймы","Не использовать баги, не атаковать серверы и не играть с помощью ботов или скриптов","Не вмешиваться в аккаунты и статистику других игроков","За нарушение правил никнейм и статистика могут быть удалены"]],
+  ["Фото и данные","Фото — свободно лицензированные изображения с Wikimedia Commons; автор и лицензия указываются после каждого ответа и на странице «Авторы фото». Высоты взяты из открытых источников, но могут содержать ошибки."],
+  ["Ограничение ответственности","В пределах, допускаемых законом, оператор не несёт ответственности за ущерб, связанный с использованием игры."],
+  ["Изменения","Если условия изменятся, мы опубликуем обновление здесь с новой датой."]]},
+ contact:{t:"Контакты", intro:"Сообщения об ошибках, запросы на удаление данных и предложения о сотрудничестве — сюда.", btn:"Написать на GitHub", mail:"Эл. почта: "}},
+
+tr:{nav:["Gizlilik","Koşullar","İletişim","Fotoğraf kaynakları","Oyuna dön"], upd:"Yürürlük tarihi: 19 Ekim 2026",
+ privacy:{t:"Gizlilik Politikası", intro:"Peakle (“oyun”), bağımsız bir geliştirici tarafından işletilen ücretsiz bir web oyunudur. Bu politika, oyunun hangi bilgileri neden kullandığını açıklar.", s:[
+  ["Topladığımız bilgiler",["Seçtiğin takma ad","Her cihaz için otomatik oluşturulan anonim hesap kimliği (Google Firebase Authentication)","Şifre belirlediysen giriş bilgileri — şifre Google tarafından şifrelenmiş olarak saklanır, biz asla göremeyiz","Oyun kayıtları (düello sonuçları, günlük puanlar)","Düello odalarının geçici verileri (oyun bitince silinir)","Yalnızca cihazında saklanan ayarlar (dil, birim, ses, günlük ilerleme)"]],
+  ["Toplamadığımız bilgiler","Adını, e-posta adresini, telefon numaranı veya konumunu toplamayız."],
+  ["Neden kullanıyoruz","Yalnızca takma adları benzersiz tutmak, 1'e 1 düelloları yürütmek, kayıtlarını saklayıp başka cihazda devam etmeni sağlamak ve hileyi önlemek için."],
+  ["Üçüncü taraf hizmetler",["Google Firebase: sunucular, giriş ve veri depolama (<a href='"+FIREBASE_PRIVACY+"'>Firebase gizliliği</a>)","Wikimedia Commons: fotoğraflar Wikimedia sunucularından yüklenirken bağlantı bilgilerin (IP adresi) bu sunuculara iletilebilir","Reklam (etkinleştirildiğinde): Google ve diğer reklam ortakları reklam göstermek için çerez kullanabilir (<a href='"+GOOGLE_ADS_POLICY+"'>Google verileri nasıl kullanır</a>). AEA, Birleşik Krallık ve İsviçre'deki ziyaretçilerden önce izin isteriz. Kişiselleştirilmiş reklamları <a href='"+ADS_SETTINGS+"'>Google Reklam Ayarları</a>'ndan kapatabilirsin","İstatistik (etkinleştirildiğinde): çerezsiz Cloudflare Web Analytics ile yalnızca ziyaret sayısı"]],
+  ["Saklama ve silme","Takma ad ve kayıtlar oyunu kullandığın sürece saklanır. Silinmesini istersen aşağıdaki iletişim yoluyla takma adını bize gönder. Cihazdaki ayarlar tarayıcı verilerini temizlediğinde silinir."],
+  ["Çocuklar","Oyun 13 yaşından küçük çocuklara yönelik değildir ve onların kişisel verilerini bilerek toplamayız."],
+  ["Değişiklikler","Politika değişirse güncellemeyi yeni tarihle burada yayımlarız."]]},
+ terms:{t:"Kullanım Koşulları", intro:"Oyunu kullanarak aşağıdakileri kabul etmiş olursun.", s:[
+  ["Hizmet","Peakle ücretsiz ve “olduğu gibi” sunulur. Özellikler haber verilmeksizin değişebilir veya durdurulabilir."],
+  ["Taahhütlerin",["Başkasının kimliğine bürünme, hakaret veya nefret içeren takma ad kullanma","Hataları istismar etme, sunuculara saldırma, bot veya betikle oynama","Diğer oyuncuların hesaplarına veya kayıtlarına müdahale etme","Bu kurallara uymazsan takma adın ve kayıtların silinebilir"]],
+  ["Fotoğraflar ve veriler","Fotoğraflar Wikimedia Commons'tan alınan özgür lisanslı görsellerdir; yazar ve lisans her cevaptan sonra ve Fotoğraf kaynakları sayfasında gösterilir. Yükseklikler kamuya açık kaynaklara dayanır ancak hata içerebilir."],
+  ["Sorumluluğun sınırlandırılması","Yasaların izin verdiği ölçüde işletici, oyunun kullanımından doğan zararlardan sorumlu değildir."],
+  ["Değişiklikler","Koşullar değişirse güncellemeyi yeni tarihle burada yayımlarız."]]},
+ contact:{t:"İletişim", intro:"Hata bildirimi, veri silme talebi veya iş birliği için bize buradan ulaş.", btn:"GitHub'da mesaj bırak", mail:"E-posta: "}},
+
+pl:{nav:["Prywatność","Regulamin","Kontakt","Autorzy zdjęć","Wróć do gry"], upd:"Obowiązuje od: 19 października 2026",
+ privacy:{t:"Polityka prywatności", intro:"Peakle („gra”) to darmowa gra przeglądarkowa prowadzona przez niezależnego twórcę. Ta polityka wyjaśnia, jakich danych używa gra i dlaczego.", s:[
+  ["Jakie dane zbieramy",["Wybrany przez ciebie pseudonim","Anonimowy identyfikator konta tworzony automatycznie dla każdego urządzenia (Google Firebase Authentication)","Dane logowania, jeśli ustawisz hasło — Google przechowuje je zaszyfrowane, my nigdy go nie widzimy","Statystyki gry (wyniki pojedynków, dzienne wyniki)","Tymczasowe dane pokoi pojedynków (usuwane po grze)","Ustawienia zapisane tylko na twoim urządzeniu (język, jednostka, dźwięk, postęp wyzwania)"]],
+  ["Czego nie zbieramy","Nie zbieramy imienia, adresu e-mail, numeru telefonu ani lokalizacji."],
+  ["Po co ich używamy","Wyłącznie po to, by pseudonimy były unikalne, by prowadzić pojedynki 1 na 1, zapisywać statystyki i umożliwić grę na innym urządzeniu oraz by zapobiegać oszustwom."],
+  ["Usługi zewnętrzne",["Google Firebase: serwery, logowanie i przechowywanie danych (<a href='"+FIREBASE_PRIVACY+"'>prywatność Firebase</a>)","Wikimedia Commons: przy wczytywaniu zdjęć z serwerów Wikimedia mogą one otrzymać dane o połączeniu (adres IP)","Reklamy (po włączeniu): Google i inni partnerzy mogą używać plików cookie do wyświetlania reklam (<a href='"+GOOGLE_ADS_POLICY+"'>jak Google wykorzystuje dane</a>). Osoby z EOG, Wielkiej Brytanii i Szwajcarii najpierw prosimy o zgodę. Reklamy spersonalizowane możesz wyłączyć w <a href='"+ADS_SETTINGS+"'>ustawieniach reklam Google</a>","Statystyki (po włączeniu): tylko liczba odwiedzin, przez Cloudflare Web Analytics bez plików cookie"]],
+  ["Przechowywanie i usuwanie","Pseudonimy i statystyki przechowujemy, dopóki korzystasz z gry. Aby je usunąć, wyślij nam swój pseudonim przez kontakt poniżej. Ustawienia na urządzeniu znikną po wyczyszczeniu danych przeglądarki."],
+  ["Dzieci","Gra nie jest skierowana do dzieci poniżej 13 lat i świadomie nie zbieramy ich danych osobowych."],
+  ["Zmiany","Jeśli polityka się zmieni, opublikujemy aktualizację tutaj z nową datą."]]},
+ terms:{t:"Regulamin", intro:"Korzystając z gry, akceptujesz poniższe zasady.", s:[
+  ["Usługa","Peakle jest udostępniane bezpłatnie i „w obecnym stanie”. Funkcje mogą się zmienić lub zostać wyłączone bez uprzedzenia."],
+  ["Twoje zobowiązania",["Nie podszywaj się pod innych i nie używaj obraźliwych ani nienawistnych pseudonimów","Nie wykorzystuj błędów, nie atakuj serwerów i nie graj za pomocą botów lub skryptów","Nie ingeruj w konta ani statystyki innych graczy","Za złamanie zasad pseudonim i statystyki mogą zostać usunięte"]],
+  ["Zdjęcia i dane","Zdjęcia to obrazy na wolnych licencjach z Wikimedia Commons; autor i licencja są podawane po każdej odpowiedzi i na stronie Autorzy zdjęć. Wysokości pochodzą z publicznych źródeł, ale mogą zawierać błędy."],
+  ["Ograniczenie odpowiedzialności","W zakresie dozwolonym przez prawo operator nie odpowiada za szkody wynikające z korzystania z gry."],
+  ["Zmiany","Jeśli regulamin się zmieni, opublikujemy aktualizację tutaj z nową datą."]]},
+ contact:{t:"Kontakt", intro:"Zgłoszenia błędów, prośby o usunięcie danych i propozycje współpracy — tutaj.", btn:"Napisz na GitHubie", mail:"E-mail: "}},
+
+zh:{nav:["隱私權政策","使用條款","聯絡我們","照片來源","回到遊戲"], upd:"生效日期:2026 年 10 月 19 日",
+ privacy:{t:"隱私權政策", intro:"Peakle(以下稱「本遊戲」)是由獨立開發者經營的免費網頁遊戲。本政策說明本遊戲使用哪些資訊以及原因。", s:[
+  ["我們蒐集的資訊",["你自行設定的暱稱","每台裝置自動建立的匿名帳號 ID(Google Firebase Authentication)","若你設定了密碼,則包含登入資訊 — 密碼由 Google 加密保存,我們也無法查看","遊戲紀錄(對戰戰績、每日挑戰分數)","對戰時的暫時房間資料(遊戲結束後刪除)","只儲存在你裝置上的設定(語言、單位、音效、每日挑戰進度)"]],
+  ["我們不蒐集的資訊","我們不蒐集姓名、電子郵件、電話號碼或位置資訊。"],
+  ["使用目的","僅用於避免暱稱重複、進行 1 對 1 對戰、保存紀錄並在其他裝置延續,以及防止作弊。"],
+  ["第三方服務",["Google Firebase:伺服器、登入與資料儲存(<a href='"+FIREBASE_PRIVACY+"'>Firebase 隱私權說明</a>)","Wikimedia Commons:從維基媒體伺服器載入照片時,對方可能取得你的連線資訊(IP 位址)","廣告(啟用後):Google 等廣告夥伴可能使用 Cookie 顯示廣告(<a href='"+GOOGLE_ADS_POLICY+"'>Google 如何使用資料</a>)。歐洲經濟區、英國與瑞士的使用者會先徵求同意。你可以在 <a href='"+ADS_SETTINGS+"'>Google 廣告設定</a> 關閉個人化廣告","流量統計(啟用後):僅透過不使用 Cookie 的 Cloudflare Web Analytics 計算造訪次數"]],
+  ["保存期間與刪除","暱稱與紀錄會在你使用期間保存。如需刪除,請透過下方聯絡方式告訴我們你的暱稱。裝置上的設定會在清除瀏覽器資料後消失。"],
+  ["兒童","本遊戲並非以未滿 13 歲的兒童為對象,我們也不會在知情的情況下蒐集兒童的個人資料。"],
+  ["變更","若本政策有所變更,我們會在此頁面公告並更新生效日期。"]]},
+ terms:{t:"使用條款", intro:"使用本遊戲即表示你同意以下內容。", s:[
+  ["服務","Peakle 免費提供,並依「現狀」提供。功能可能在未事先通知的情況下變更或停止。"],
+  ["使用者的承諾",["不冒充他人,不使用含辱罵或仇恨言論的暱稱","不利用程式錯誤、不攻擊伺服器、不使用機器人或腳本遊玩","不擅自更動其他玩家的帳號或紀錄","違反上述規定者,其暱稱與紀錄可能會被刪除"]],
+  ["照片與資料","建築照片均為 Wikimedia Commons 的自由授權圖片;攝影者與授權會在公布答案後及「照片來源」頁面標示。高度資料取自公開來源,但仍可能有誤。"],
+  ["責任限制","在法律允許的範圍內,營運者不對因使用本遊戲所生之損害負責。"],
+  ["變更","若本條款有所變更,我們會在此頁面公告並更新生效日期。"]]},
+ contact:{t:"聯絡我們", intro:"回報錯誤、申請刪除資料或合作洽詢,請由下方與我們聯絡。", btn:"在 GitHub 留言", mail:"電子郵件:"}}
+};
+
+function pick(){
+  const q=new URLSearchParams(location.search).get("lang");
+  if(q&&T[q]) return q;
+  try{ const s=localStorage.getItem("pk_lang"); if(s&&T[s]) return s; }catch(e){}
+  for(const l of (navigator.languages||[navigator.language||"en"])){ const b=String(l).split("-")[0].toLowerCase(); if(T[b]) return b; }
+  return "en";
+}
+let L=pick();
+function block(id,d,extra){
+  let h=`<section id="${id}"><h1>${d.t}</h1><p class="upd">${T[L].upd}</p><p>${d.intro}</p>`;
+  for(const [hd,body] of (d.s||[])){
+    h+=`<h2>${hd}</h2>`+(Array.isArray(body)?"<ul>"+body.map(x=>`<li>${x}</li>`).join("")+"</ul>":`<p>${body}</p>`);
+  }
+  return h+(extra||"")+"</section>";
+}
+function render(){
+  const t=T[L];
+  document.documentElement.lang = L==="pt"?"pt-BR":L==="zh"?"zh-Hant":L;
+  document.getElementById("lang").value=L;
+  document.getElementById("nav").innerHTML=[["#privacy",t.nav[0]],["#terms",t.nav[1]],["#contact",t.nav[2]],["credits.html?lang="+L,t.nav[3]],["./",t.nav[4]]]
+    .map(([h,x])=>`<a href="${h}">${x}</a>`).join("");
+  const c=t.contact;
+  const contactExtra=`<p><a class="btn" href="${ISSUES}" target="_blank" rel="noopener">${c.btn}</a></p>`+(CONTACT_EMAIL?`<p>${c.mail}<a href="mailto:${CONTACT_EMAIL}">${CONTACT_EMAIL}</a></p>`:"");
+  document.getElementById("main").innerHTML=block("privacy",t.privacy)+block("terms",t.terms)+`<section id="contact"><h1>${c.t}</h1><p>${c.intro}</p>${contactExtra}</section>`;
+  document.title="Peakle — "+t.nav.slice(0,3).join(" · ");
+  if(location.hash){ const el=document.querySelector(location.hash); if(el) el.scrollIntoView(); }
+}
+document.getElementById("lang").onchange=e=>{ L=e.target.value; try{localStorage.setItem("pk_lang",L);}catch(_){ } render(); };
+render();
+</script>
+</body>
+</html>
