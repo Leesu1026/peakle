@@ -51,7 +51,7 @@ section.on{display:block}
 
 .field{margin:14px 0}
 .lbl{display:block;font-size:13px;color:var(--dim);margin-bottom:6px}
-input[type=text],input[type=tel]{
+input[type=text],input[type=tel],input[type=password]{
   width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;
   color:var(--snow);font-size:18px;padding:14px 16px;outline:none;font-family:inherit;font-weight:700;
 }
@@ -173,9 +173,19 @@ select option{color:#000}
     <input type="text" id="nick" maxlength="12" autocomplete="off">
     <div class="nickstat" id="nickstat"></div>
     <div id="recoverrow" style="display:none">
-      <div class="guessrow" style="margin-top:8px">
-        <input type="text" id="recode" maxlength="9" autocomplete="off" style="text-transform:uppercase;letter-spacing:3px;text-align:center;font-size:16px">
-        <button class="gbtn" id="b-recover" style="font-size:14px;padding:0 14px"></button>
+      <div id="loginrow">
+        <div class="guessrow" style="margin-top:8px">
+          <input type="password" id="lpw" maxlength="64" autocomplete="current-password" style="font-size:16px">
+          <button class="gbtn" id="b-login" style="font-size:14px;padding:0 14px"></button>
+        </div>
+        <div class="nickstat"><button id="b-forgot" style="padding:0"></button></div>
+      </div>
+      <div id="coderow" style="display:none">
+        <div class="nickstat" id="nopwnote" style="display:none"></div>
+        <div class="guessrow" style="margin-top:8px">
+          <input type="text" id="recode" maxlength="9" autocomplete="off" style="text-transform:uppercase;letter-spacing:3px;text-align:center;font-size:16px">
+          <button class="gbtn" id="b-recover" style="font-size:14px;padding:0 14px"></button>
+        </div>
       </div>
     </div>
   </div>
@@ -307,6 +317,14 @@ select option{color:#000}
       <div class="seg"><button id="snd-on" data-i="on"></button><button id="snd-off" data-i="off"></button></div>
     </div>
   </div>
+  <div class="card" id="pwcard">
+    <div class="setrow"><span><span data-i="pw_title"></span> <b id="pwnick" style="color:var(--ice)"></b></span><b id="pwstate"></b></div>
+    <input type="password" id="pwold" maxlength="64" autocomplete="current-password" style="margin-top:10px;display:none">
+    <input type="password" id="pwnew" maxlength="64" autocomplete="new-password" style="margin-top:10px">
+    <button class="btn small" id="b-setpw"></button>
+    <button class="btn ghost small" id="b-logout" style="display:none" data-i="logout"></button>
+    <p class="note" data-i="pw_note"></p>
+  </div>
   <div class="card" id="codecard">
     <div class="setrow"><span><span data-i="code_title"></span> <b id="codenick" style="color:var(--ice)"></b></span><span class="codeval" id="codeval">—</span></div>
     <button class="btn ghost small" id="b-copyrc" data-i="copy_code2"></button>
@@ -325,7 +343,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getDatabase, ref, set, get, update, remove, onValue, off, onDisconnect, runTransaction,
          increment, query, orderByChild, endAt, limitToFirst }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { getAuth, signInAnonymously, onAuthStateChanged }
+import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, EmailAuthProvider,
+  linkWithCredential, reauthenticateWithCredential, updatePassword, signOut }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -350,9 +369,19 @@ const sleep = ms => new Promise(r=>setTimeout(r,ms));
 const auth = getAuth(fbApp);
 let AUID = null, uid = null;
 const TAB = sessionStorage.getItem("pk_tab") || (()=>{const v=Math.random().toString(36).slice(2,6);sessionStorage.setItem("pk_tab",v);return v;})();
-const authReady = new Promise(res=>{ onAuthStateChanged(auth,u=>{ if(u){ AUID=u.uid; uid=AUID+"_"+TAB; res(true); } }); });
-signInAnonymously(auth).catch(()=>{});
-const online = () => Promise.race([authReady, sleep(7000).then(()=>false)]);
+/* 로그인 상태: 비밀번호로 로그인한 계정은 새로고침해도 유지되고, 로그인한 적 없으면 익명 계정을 자동 발급 */
+const authReady = new Promise(res=>{ onAuthStateChanged(auth,u=>{
+  if(u){ AUID=u.uid; uid=AUID+"_"+TAB; res(true); try{ renderPw(); }catch(e){} }
+  else { AUID=null; uid=null; signInAnonymously(auth).catch(()=>{}); }
+}); });
+const online = async () => {
+  if(!await Promise.race([authReady, sleep(7000).then(()=>false)])) return false;
+  for(let i=0;i<70 && !AUID;i++) await sleep(100);   // 로그아웃 직후 새 익명 계정이 생길 때까지 잠깐 대기
+  return !!AUID;
+};
+/* 비밀번호 계정: 플레이어에게는 이메일을 묻지 않고, 계정 고유 ID로 만든 가짜 주소를 화면 뒤에서 사용 */
+const emailOf = id => String(id).toLowerCase()+"@peakle.game";
+const isPwUser = () => !!(auth.currentUser && (auth.currentUser.providerData||[]).some(p=>p && p.providerId==="password"));
 
 /* ================= i18n ================= */
 const STR = {
@@ -547,6 +576,17 @@ function detectLang(){
   return "en";
 }
 let L = detectLang();
+/* ===== 비밀번호 로그인 문구 (언어별) ===== */
+const STR2 = {
+ko:{ login_btn:"로그인", pw_ph:"비밀번호", login_ok:"로그인했어요! 내 기록을 불러왔어요", login_bad:"비밀번호가 맞지 않아요", login_many:"너무 많이 시도했어요. 잠시 후 다시 해 주세요", forgot:"비밀번호를 잊었어요 (복구 코드 사용)", no_pw:"이 닉네임은 비밀번호가 설정되지 않았어요. 원래 기기에서 받은 복구 코드로 가져올 수 있어요.", pw_title:"🔒 비밀번호", pw_none:"설정 안 됨", pw_on:"설정됨 ✓", pw_new_ph:"새 비밀번호 (6자 이상)", pw_old_ph:"현재 비밀번호", pw_set_btn:"비밀번호 설정", pw_change_btn:"비밀번호 변경", pw_short:"비밀번호는 6자 이상이어야 해요", pw_set_ok:"비밀번호를 설정했어요! 이제 다른 기기에서도 닉네임과 비밀번호로 로그인할 수 있어요", pw_changed:"비밀번호를 바꿨어요", pw_need_nick:"먼저 홈 화면에서 닉네임을 입력해 주세요", pw_note:"비밀번호를 설정하면 다른 기기나 브라우저에서도 닉네임과 비밀번호만으로 내 기록을 이어서 쓸 수 있어요. 다른 사이트와 같은 비밀번호는 쓰지 마세요.", logout:"로그아웃", logout_ok:"로그아웃했어요", pw_err:"문제가 생겼어요. 잠시 후 다시 해 주세요", code_note:"비밀번호를 잊었을 때 쓰는 비상용 코드예요. 캡처해서 보관해 두고, 남에게 알려주지 마세요." },
+en:{ login_btn:"Log in", pw_ph:"Password", login_ok:"Logged in! Your record is loaded", login_bad:"Wrong password", login_many:"Too many attempts. Please try again later", forgot:"Forgot password? (use recovery code)", no_pw:"This nickname has no password. You can restore it with the recovery code from the original device.", pw_title:"🔒 Password", pw_none:"Not set", pw_on:"Set ✓", pw_new_ph:"New password (6+ characters)", pw_old_ph:"Current password", pw_set_btn:"Set password", pw_change_btn:"Change password", pw_short:"Password must be at least 6 characters", pw_set_ok:"Password set! You can now log in on other devices with your nickname and password", pw_changed:"Password changed", pw_need_nick:"Enter a nickname on the home screen first", pw_note:"With a password, you can keep your record on any device or browser using just your nickname and password. Don't reuse a password from another site.", logout:"Log out", logout_ok:"Logged out", pw_err:"Something went wrong. Please try again later", code_note:"Emergency code for when you forget your password. Save a screenshot and keep it private." },
+es:{ login_btn:"Entrar", pw_ph:"Contraseña", login_ok:"¡Sesión iniciada! Tu historial está cargado", login_bad:"Contraseña incorrecta", login_many:"Demasiados intentos. Inténtalo más tarde", forgot:"¿Olvidaste la contraseña? (usa el código de recuperación)", no_pw:"Este apodo no tiene contraseña. Puedes recuperarlo con el código del dispositivo original.", pw_title:"🔒 Contraseña", pw_none:"Sin configurar", pw_on:"Configurada ✓", pw_new_ph:"Nueva contraseña (mín. 6 caracteres)", pw_old_ph:"Contraseña actual", pw_set_btn:"Crear contraseña", pw_change_btn:"Cambiar contraseña", pw_short:"La contraseña debe tener al menos 6 caracteres", pw_set_ok:"¡Contraseña creada! Ya puedes entrar en otros dispositivos con tu apodo y contraseña", pw_changed:"Contraseña cambiada", pw_need_nick:"Primero escribe un apodo en la pantalla de inicio", pw_note:"Con una contraseña puedes seguir con tu historial en cualquier dispositivo o navegador usando solo tu apodo y contraseña. No reutilices la contraseña de otro sitio.", logout:"Cerrar sesión", logout_ok:"Sesión cerrada", pw_err:"Algo salió mal. Inténtalo más tarde", code_note:"Código de emergencia por si olvidas tu contraseña. Guarda una captura y no lo compartas." },
+pt:{ login_btn:"Entrar", pw_ph:"Senha", login_ok:"Você entrou! Seu histórico foi carregado", login_bad:"Senha incorreta", login_many:"Muitas tentativas. Tente de novo mais tarde", forgot:"Esqueceu a senha? (use o código de recuperação)", no_pw:"Este apelido não tem senha. Você pode recuperá-lo com o código do aparelho original.", pw_title:"🔒 Senha", pw_none:"Não definida", pw_on:"Definida ✓", pw_new_ph:"Nova senha (mín. 6 caracteres)", pw_old_ph:"Senha atual", pw_set_btn:"Criar senha", pw_change_btn:"Trocar senha", pw_short:"A senha precisa ter pelo menos 6 caracteres", pw_set_ok:"Senha criada! Agora você pode entrar em outros aparelhos com seu apelido e senha", pw_changed:"Senha alterada", pw_need_nick:"Primeiro digite um apelido na tela inicial", pw_note:"Com uma senha, você continua seu histórico em qualquer aparelho ou navegador usando só o apelido e a senha. Não repita a senha de outro site.", logout:"Sair da conta", logout_ok:"Você saiu da conta", pw_err:"Algo deu errado. Tente de novo mais tarde", code_note:"Código de emergência para quando esquecer a senha. Salve um print e não compartilhe." },
+ja:{ login_btn:"ログイン", pw_ph:"パスワード", login_ok:"ログインしました!戦績を読み込みました", login_bad:"パスワードが違います", login_many:"試行回数が多すぎます。しばらくしてからもう一度お試しください", forgot:"パスワードを忘れた(復元コードを使う)", no_pw:"このニックネームにはパスワードが設定されていません。元の端末で発行された復元コードで引き継げます。", pw_title:"🔒 パスワード", pw_none:"未設定", pw_on:"設定済み ✓", pw_new_ph:"新しいパスワード(6文字以上)", pw_old_ph:"現在のパスワード", pw_set_btn:"パスワードを設定", pw_change_btn:"パスワードを変更", pw_short:"パスワードは6文字以上にしてください", pw_set_ok:"パスワードを設定しました!別の端末でもニックネームとパスワードでログインできます", pw_changed:"パスワードを変更しました", pw_need_nick:"先にホーム画面でニックネームを入力してください", pw_note:"パスワードを設定すると、別の端末やブラウザでもニックネームとパスワードだけで戦績を引き継げます。他のサイトと同じパスワードは使わないでください。", logout:"ログアウト", logout_ok:"ログアウトしました", pw_err:"問題が発生しました。しばらくしてからもう一度お試しください", code_note:"パスワードを忘れたときの緊急用コードです。スクリーンショットで保存し、他の人に教えないでください。" },
+de:{ login_btn:"Anmelden", pw_ph:"Passwort", login_ok:"Angemeldet! Deine Statistik ist geladen", login_bad:"Falsches Passwort", login_many:"Zu viele Versuche. Bitte versuche es später erneut", forgot:"Passwort vergessen? (Wiederherstellungscode nutzen)", no_pw:"Für diesen Spitznamen ist kein Passwort gesetzt. Du kannst ihn mit dem Code vom ursprünglichen Gerät wiederherstellen.", pw_title:"🔒 Passwort", pw_none:"Nicht gesetzt", pw_on:"Gesetzt ✓", pw_new_ph:"Neues Passwort (mind. 6 Zeichen)", pw_old_ph:"Aktuelles Passwort", pw_set_btn:"Passwort festlegen", pw_change_btn:"Passwort ändern", pw_short:"Das Passwort braucht mindestens 6 Zeichen", pw_set_ok:"Passwort gesetzt! Du kannst dich jetzt auf anderen Geräten mit Spitzname und Passwort anmelden", pw_changed:"Passwort geändert", pw_need_nick:"Gib zuerst auf dem Startbildschirm einen Spitznamen ein", pw_note:"Mit einem Passwort nutzt du deine Statistik auf jedem Gerät oder Browser – nur mit Spitzname und Passwort. Verwende kein Passwort von einer anderen Website.", logout:"Abmelden", logout_ok:"Abgemeldet", pw_err:"Etwas ist schiefgelaufen. Bitte später erneut versuchen", code_note:"Notfallcode, falls du dein Passwort vergisst. Mach einen Screenshot und gib ihn niemandem weiter." },
+fr:{ login_btn:"Se connecter", pw_ph:"Mot de passe", login_ok:"Connecté ! Vos statistiques sont chargées", login_bad:"Mot de passe incorrect", login_many:"Trop de tentatives. Réessayez plus tard", forgot:"Mot de passe oublié ? (utiliser le code de récupération)", no_pw:"Ce pseudo n'a pas de mot de passe. Vous pouvez le récupérer avec le code de l'appareil d'origine.", pw_title:"🔒 Mot de passe", pw_none:"Non défini", pw_on:"Défini ✓", pw_new_ph:"Nouveau mot de passe (6 caractères min.)", pw_old_ph:"Mot de passe actuel", pw_set_btn:"Définir le mot de passe", pw_change_btn:"Changer le mot de passe", pw_short:"Le mot de passe doit contenir au moins 6 caractères", pw_set_ok:"Mot de passe défini ! Vous pouvez maintenant vous connecter sur d'autres appareils avec votre pseudo et votre mot de passe", pw_changed:"Mot de passe modifié", pw_need_nick:"Saisissez d'abord un pseudo sur l'écran d'accueil", pw_note:"Avec un mot de passe, vous retrouvez vos statistiques sur n'importe quel appareil ou navigateur avec seulement votre pseudo et votre mot de passe. N'utilisez pas le mot de passe d'un autre site.", logout:"Se déconnecter", logout_ok:"Déconnecté", pw_err:"Un problème est survenu. Réessayez plus tard", code_note:"Code de secours si vous oubliez votre mot de passe. Faites une capture d'écran et ne le partagez pas." },
+};
+for (const l in STR2) Object.assign(STR[l], STR2[l]);
 const t = k => (STR[L][k] ?? STR.en[k]);
 
 /* ================= 상태/설정 ================= */
@@ -586,7 +626,8 @@ async function claimNick(n){
       const code=genCode();
       await set(ref(db,`nicknames/${k}`),{owner:AUID,code,nick:n});   // 동시에 누가 먼저 가져가면 보안 규칙이 거부
       localStorage.setItem("pk_code_"+k,code);
-    }
+      if(isPwUser()) markPw(k);
+    } else if(isPwUser() && verifiedKey!==k) markPw(k);
     setMine(n,k); loadStats(); return "ok";
   }catch(e){ return "taken"; }
 }
@@ -604,7 +645,7 @@ async function ensureNick(needNet){
 let nickTimer=null;
 function nickStatus(){
   clearTimeout(nickTimer);
-  const el=$("nickstat"), n=nickname(); $("recoverrow").style.display="none";
+  const el=$("nickstat"), n=nickname(); $("recoverrow").style.display="none"; $("lpw").value="";
   el.className="nickstat"; el.textContent="";
   if(!n) return;
   const p=nickProblem(n); if(p){ el.className="nickstat bad"; el.textContent=t(p); return; }
@@ -616,7 +657,8 @@ function nickStatus(){
       if(!o.exists()){ el.className="nickstat ok"; el.textContent="✓ "+t("nick_free"); }
       else if(o.val()===AUID){ el.className="nickstat ok"; el.textContent="✓ "+t("nick_mine"); if(myNickKey!==k){ setMine(n,k); loadStats(); } }
       else { el.className="nickstat bad"; el.innerHTML="✗ "+esc(t("nick_taken"))+'<button id="b-showrec">'+esc(t("recover_q"))+"</button>";
-             $("b-showrec").onclick=()=>{ $("recoverrow").style.display="block"; $("recode").focus(); }; }
+             let hasPw=null; try{ hasPw=(await get(ref(db,`nicknames/${k}/pw`))).val()===true; }catch(e){}   // null = 확인 불가(규칙 미갱신)
+             $("b-showrec").onclick=()=>openLogin(hasPw); }
     }catch(e){}
   },350);
 }
@@ -631,11 +673,86 @@ async function recoverNick(){
     $("recoverrow").style.display="none"; toast(t("recover_ok")); nickStatus(); loadStats();
   }catch(e){ toast(t("recover_bad")); }
 }
-/* 복구 코드 보기 (이 기기에 없으면 새로 발급 — 소유자만 가능) */
+/* 이미 쓰는 닉네임 → 로그인 창 (비밀번호가 없는 닉네임이면 복구 코드 창) */
+function openLogin(hasPw){
+  $("recoverrow").style.display="block";
+  const usePw = hasPw!==false;
+  $("loginrow").style.display = usePw ? "block" : "none";
+  $("coderow").style.display = usePw ? "none" : "block";
+  $("nopwnote").style.display = usePw ? "none" : "block";
+  (usePw ? $("lpw") : $("recode")).focus();
+}
+async function loginNick(){
+  const n=nickname(), pw=$("lpw").value;
+  if(nickProblem(n) || !pw){ toast(t("login_bad")); return; }
+  if(!await online()){ toast(t("offline")); return; }
+  const k=nickKey(n), btn=$("b-login"); btn.disabled=true;
+  try{
+    const o=await get(ref(db,`nicknames/${k}/owner`));
+    if(!o.exists() || o.val()===AUID){ nickStatus(); return; }
+    const cred=await signInWithEmailAndPassword(auth, emailOf(o.val()), pw);
+    AUID=cred.user.uid; uid=AUID+"_"+TAB;
+    localStorage.removeItem("pk_code_"+k);   // 이 기기에 남아 있던 옛 코드는 버리고 서버 값을 사용
+    setMine(n,k); $("lpw").value=""; $("recoverrow").style.display="none";
+    toast(t("login_ok")); nickStatus(); loadStats(); renderPw();
+  }catch(e){
+    const c=(e&&e.code)||"";
+    toast(c.includes("too-many") ? t("login_many") : c.includes("network") ? t("offline") : t("login_bad"));
+  }finally{ btn.disabled=false; }
+}
+async function markPw(k){ try{ await update(ref(db,`nicknames/${k}`),{pw:true}); }catch(e){} }
+function renderPw(){
+  const has=isPwUser();
+  $("pwstate").textContent = has ? t("pw_on") : t("pw_none");
+  $("pwstate").style.color = has ? "var(--ok)" : "var(--dim)";
+  $("pwnick").textContent = myNickKey ? (localStorage.getItem("pk_nickname_of_"+myNickKey)||localStorage.getItem("pk_nick")||"") : "";
+  $("pwold").style.display = has ? "block" : "none";
+  $("b-setpw").textContent = has ? t("pw_change_btn") : t("pw_set_btn");
+  $("b-logout").style.display = has ? "inline-block" : "none";
+  $("pwnew").placeholder=t("pw_new_ph"); $("pwold").placeholder=t("pw_old_ph");
+}
+async function setPassword(){
+  const p1=$("pwnew").value, old=$("pwold").value;
+  if(p1.length<6){ toast(t("pw_short")); return; }
+  if(!await online()){ toast(t("offline")); return; }
+  const btn=$("b-setpw"); btn.disabled=true;
+  try{
+    const u=auth.currentUser;
+    if(isPwUser()){
+      if(!old){ toast(t("login_bad")); return; }
+      await reauthenticateWithCredential(u, EmailAuthProvider.credential(emailOf(u.uid), old));
+      await updatePassword(u, p1);
+      toast(t("pw_changed"));
+    }else{
+      const n=nickname()||localStorage.getItem("pk_nick")||"";
+      if(!n || nickProblem(n)){ toast(t("pw_need_nick")); return; }
+      const r=await claimNick(n);
+      if(r!=="ok"){ toast(t(r==="offline" ? "offline" : "nick_taken")); return; }
+      await linkWithCredential(u, EmailAuthProvider.credential(emailOf(u.uid), p1));
+      await markPw(myNickKey);
+      toast(t("pw_set_ok"));
+    }
+    $("pwnew").value=""; $("pwold").value="";
+  }catch(e){
+    const c=(e&&e.code)||"";
+    toast(/wrong-password|invalid-credential/.test(c) ? t("login_bad") : c.includes("too-many") ? t("login_many")
+        : c.includes("weak-password") ? t("pw_short") : c.includes("network") ? t("offline") : t("pw_err"));
+  }finally{ btn.disabled=false; renderPw(); }
+}
+async function logout(){
+  try{ await signOut(auth); }catch(e){}
+  AUID=null; uid=null; myNickKey=null; verifiedKey=null; myStats=null;
+  localStorage.removeItem("pk_nickkey"); localStorage.removeItem("pk_nick");
+  $("nick").value=""; nickStatus(); renderStats(); renderPw(); $("codeval").textContent="—"; $("codenick").textContent="";
+  toast(t("logout_ok")); screen("home");
+}
+/* 복구 코드 보기 (서버에서 내 코드를 읽어옴 → 없으면 새로 발급 — 소유자만 가능) */
 async function showMyCode(){
   const el=$("codeval");
   if(!myNickKey){ el.textContent="—"; return; }
-  let c=localStorage.getItem("pk_code_"+myNickKey);
+  let c=null;
+  if(await online()){ try{ const s=await get(ref(db,`nicknames/${myNickKey}/code`)); if(s.exists()){ c=s.val(); localStorage.setItem("pk_code_"+myNickKey,c); } }catch(e){} }
+  if(!c) c=localStorage.getItem("pk_code_"+myNickKey);
   if(!c && await online()){
     try{ c=genCode(); await update(ref(db,`nicknames/${myNickKey}`),{owner:AUID,code:c,nick:localStorage.getItem("pk_nick")}); localStorage.setItem("pk_code_"+myNickKey,c); }
     catch(e){ c=null; }
@@ -693,7 +810,7 @@ function fmtH(mm){ return toUnit(mm).toLocaleString() + " " + unit; }
    라운드 점수 0~5000. 오직 "실제 높이와 몇 m 차이 나는가"로만 계산.
    → 같은 문제에서는 더 가깝게 맞힌 사람이 항상 더 높은 점수 (높게/낮게 찍은 방향은 무관)
    오차 2% 이내 만점, 10%≈4,300점, 30%≈3,200점, 50%≈2,400점 */
-const MAXPTS=5000, START_HP=1000, APP_VER=10;
+const MAXPTS=5000, START_HP=1000, APP_VER=11;
 function calcScore(guessM, actualM){
   if(guessM==null||guessM<=0) return 0;
   const r=Math.abs(guessM-actualM)/actualM;   // 실제 높이 대비 차이(m)의 비율
@@ -858,6 +975,7 @@ function applyI18n(){
   $("b-share-battle").textContent=t("share"); $("b-share-daily").textContent=t("share");
   $("guess").placeholder=t("guess_ph"); $("unitlbl").textContent=unit;
   $("b-recover").textContent=t("recover_btn"); $("recode").placeholder=t("recover_ph"); renderStats();
+  $("b-login").textContent=t("login_btn"); $("lpw").placeholder=t("pw_ph"); $("b-forgot").textContent=t("forgot"); $("nopwnote").textContent=t("no_pw"); renderPw();
   $("mtcount").textContent="🏔 "+MT.length.toLocaleString()+" "+t("mts");
   $("langsel").value=L; document.documentElement.lang = L==="pt" ? "pt-BR" : L;
   $("u-m").classList.toggle("on",unit==="m"); $("u-ft").classList.toggle("on",unit==="ft");
@@ -1457,7 +1575,13 @@ function share(text){
 $("b-daily").onclick=()=>startSolo("daily");
 $("b-practice").onclick=()=>startSolo("practice");
 $("b-battle").onclick=async()=>{ if(await ensureNick(true)) screen("battle"); };
-$("b-settings").onclick=()=>{ showMyCode(); screen("settings"); };
+$("b-settings").onclick=()=>{ showMyCode(); renderPw(); screen("settings"); };
+$("b-login").onclick=loginNick;
+$("lpw").addEventListener("keydown",e=>{ if(e.key==="Enter") loginNick(); });
+$("b-forgot").onclick=()=>{ $("loginrow").style.display="none"; $("coderow").style.display="block"; $("recode").focus(); };
+$("b-setpw").onclick=setPassword;
+$("pwnew").addEventListener("keydown",e=>{ if(e.key==="Enter") setPassword(); });
+$("b-logout").onclick=logout;
 $("nick").addEventListener("input",nickStatus);
 $("b-recover").onclick=recoverNick;
 $("recode").addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g,"");});
