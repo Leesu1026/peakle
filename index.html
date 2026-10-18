@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -293,11 +293,11 @@ select option{color:#000}
       <select id="langsel">
         <option value="ko">한국어</option>
         <option value="en">English</option>
-        <option value="" disabled>中文 (준비 중)</option>
-        <option value="" disabled>日本語 (준비 중)</option>
-        <option value="" disabled>Español (준비 중)</option>
-        <option value="" disabled>Français (준비 중)</option>
-        <option value="" disabled>हिन्दी (준비 중)</option>
+        <option value="es">Español</option>
+        <option value="pt">Português (Brasil)</option>
+        <option value="ja">日本語</option>
+        <option value="de">Deutsch</option>
+        <option value="fr">Français</option>
       </select>
     </div>
     <div class="setrow"><span data-i="unit"></span>
@@ -406,9 +406,148 @@ en:{
  share_daily:(n,s,e)=>`Peakle Daily #${n}\n⛰️ ${s.toLocaleString()} / 25,000 pts\n${e}\n`,
  share_battle:(w,me,foe)=>`Peakle ⚔️ 1v1 Battle — ${w}\n${me} vs ${foe}\n`,
  version_err:"Game version mismatch with opponent. Please refresh!",
-}};
-let L = localStorage.getItem("pk_lang") || "ko";
-const t = k => STR[L][k];
+},
+es:{
+ tag:"Adivina la altura de los monumentos del mundo. Desafía a todos.", nick:"Apodo (2–12 caracteres)", daily:"📅 Reto diario",
+ battle:"⚔️ Duelo 1 vs 1", practice:"🎯 Práctica", settings:"⚙️ Ajustes", quick:"⚡ Partida rápida",
+ create:"🏠 Crear sala", join:"Entrar", join_lbl:"Entrar con código",
+ battle_note:"Empiezas con 1.000 PV. En cada ronda, quien se acerca más quita (diferencia entre los dos errores en metros) × su multiplicador. Ej.: tu error 20 m, el suyo 70 m → pierde 50. Ambos empiezan en ×1; cada ronda que ganas suma +0,5 a tu multiplicador. Máx. 15 rondas.",
+ nick_chars:"Usa solo letras, números, espacios, _ o -", nick_taken:"Ese apodo ya está en uso", nick_free:"Apodo disponible", nick_mine:"Tu apodo",
+ recover_q:"¿Es tuyo?", recover_btn:"Recuperar", recover_ok:"¡Apodo recuperado!", recover_bad:"Código de recuperación incorrecto", recover_ph:"Código de recuperación",
+ offline:"No se puede conectar al servidor. Revisa tu conexión", code_title:"Mi código de recuperación", copy_code2:"Copiar código de recuperación",
+ code_note:"Necesitas este código para usar este apodo (y su historial) en otro dispositivo o navegador. No lo compartas.",
+ w:"V", l:"D", d:"E", daily_best:"Mejor diario", photo_src:"Fuente de la foto (Wikimedia Commons)", daily_saved:"Progreso guardado. Puedes continuar más tarde", rematch:"🔄 Revancha", rematch_bot:"🔄 Jugar otra vez", rematch_wait:"Esperando al rival…", rematch_req:"¡Tu rival quiere la revancha! Toca para empezar", opp_gone:"El rival se fue", attack:"ataque", tie:"Ronda empatada", photo_loading:"Cargando foto…", next_mult:"Multiplicadores de la próxima ronda —", foe:"Rival", join_fail:"El rival se desconectó. Buscando de nuevo…",
+ matching:"Buscando rival…", matching_desc:"Si nadie se une en 30 s, jugarás contra un bot de práctica",
+ room_wait:"Esperando a tu amigo…", room_desc:"Comparte este código con un amigo", copy_code:"Copiar código", copied:"¡Copiado!",
+ round:"Ronda", answer:"Altura real", me:"Tú", bot_prefix:"", submit_done:"¡Enviado! Esperando al rival…",
+ timeout:"¡Se acabó el tiempo!", damage:"daño", pts:"pts", win:"¡Victoria!", lose:"Derrota…", draw:"Empate",
+ win_sub:"¡Un sentido de la altura imparable!", lose_sub:"La próxima vez, más alto.", draw_sub:"¡Igualados a la perfección!",
+ opp_left:"El rival se fue. ¡Ganas!", share:"Compartir resultado", home:"Inicio", quit:"Salir",
+ daily_title:"Reto diario", daily_max:"/ 25.000 pts", daily_next:"¡Nuevo reto a medianoche (UTC)!",
+ daily_done:"Ya completaste el reto de hoy", lang:"Idioma", unit:"Unidad de altura", sound:"Sonido", on:"Sí", off:"No",
+ settings_note:"Los monumentos se muestran con su nombre oficial en inglés.",
+ nick_short:"El apodo debe tener al menos 2 caracteres", nick_bad:"Ese apodo no está permitido", no_room:"Sala no encontrada",
+ room_full:"La sala está llena", practice_end:"Fin de la práctica", rounds_played:"Rondas jugadas", avg_pts:"Promedio",
+ mts:"monumentos del mundo", err:"error", guess_ph:"Escribe la altura", next_in:"Próxima ronda en breve…", start_in:"¡Empieza la partida!",
+ share_daily:(n,s,e)=>`Peakle Reto diario #${n}\n⛰️ ${s.toLocaleString("es")} / 25.000 pts\n${e}\n`,
+ share_battle:(w,me,foe)=>`Peakle ⚔️ Duelo 1 vs 1 — ${w}\n${me} vs ${foe}\n`,
+ version_err:"Tu versión del juego es distinta a la del rival. ¡Recarga la página!",
+},
+pt:{
+ tag:"Adivinhe a altura dos monumentos do mundo. Desafie todo mundo.", nick:"Apelido (2–12 caracteres)", daily:"📅 Desafio diário",
+ battle:"⚔️ Duelo 1 x 1", practice:"🎯 Treino", settings:"⚙️ Configurações", quick:"⚡ Partida rápida",
+ create:"🏠 Criar sala", join:"Entrar", join_lbl:"Entrar com código",
+ battle_note:"Você começa com 1.000 de vida. A cada rodada, quem chegar mais perto tira (diferença entre os dois erros em metros) × seu multiplicador. Ex.: seu erro 20 m, o dele 70 m → ele perde 50. Os dois começam em ×1; cada rodada vencida soma +0,5 ao seu multiplicador. Máx. 15 rodadas.",
+ nick_chars:"Use só letras, números, espaços, _ ou -", nick_taken:"Esse apelido já está em uso", nick_free:"Apelido disponível", nick_mine:"Seu apelido",
+ recover_q:"É seu?", recover_btn:"Recuperar", recover_ok:"Apelido recuperado!", recover_bad:"Código de recuperação incorreto", recover_ph:"Código de recuperação",
+ offline:"Não foi possível conectar ao servidor. Verifique sua conexão", code_title:"Meu código de recuperação", copy_code2:"Copiar código de recuperação",
+ code_note:"Você precisa deste código para usar este apelido (e seu histórico) em outro aparelho ou navegador. Não compartilhe.",
+ w:"V", l:"D", d:"E", daily_best:"Melhor diário", photo_src:"Fonte da foto (Wikimedia Commons)", daily_saved:"Progresso salvo. Você pode continuar depois", rematch:"🔄 Revanche", rematch_bot:"🔄 Jogar de novo", rematch_wait:"Aguardando o adversário…", rematch_req:"O adversário quer revanche! Toque para começar", opp_gone:"O adversário saiu", attack:"ataque", tie:"Rodada empatada", photo_loading:"Carregando foto…", next_mult:"Multiplicadores da próxima rodada —", foe:"Adversário", join_fail:"O adversário desconectou. Procurando de novo…",
+ matching:"Procurando adversário…", matching_desc:"Se ninguém entrar em 30 s, você joga contra um bot de treino",
+ room_wait:"Aguardando seu amigo…", room_desc:"Mande este código para um amigo", copy_code:"Copiar código", copied:"Copiado!",
+ round:"Rodada", answer:"Altura real", me:"Você", bot_prefix:"", submit_done:"Enviado! Aguardando o adversário…",
+ timeout:"Acabou o tempo!", damage:"dano", pts:"pts", win:"Vitória!", lose:"Derrota…", draw:"Empate",
+ win_sub:"Que noção de altura imbatível!", lose_sub:"Na próxima, mire mais alto.", draw_sub:"Empate perfeito!",
+ opp_left:"O adversário saiu. Você venceu!", share:"Compartilhar resultado", home:"Início", quit:"Sair",
+ daily_title:"Desafio diário", daily_max:"/ 25.000 pts", daily_next:"Novo desafio à meia-noite (UTC)!",
+ daily_done:"Você já fez o desafio de hoje", lang:"Idioma", unit:"Unidade de altura", sound:"Som", on:"Ligado", off:"Desligado",
+ settings_note:"Os monumentos aparecem com o nome oficial em inglês.",
+ nick_short:"O apelido precisa ter pelo menos 2 caracteres", nick_bad:"Esse apelido não é permitido", no_room:"Sala não encontrada",
+ room_full:"A sala está cheia", practice_end:"Fim do treino", rounds_played:"Rodadas jogadas", avg_pts:"Média",
+ mts:"monumentos do mundo", err:"erro", guess_ph:"Digite a altura", next_in:"Próxima rodada já já…", start_in:"Começou a partida!",
+ share_daily:(n,s,e)=>`Peakle Desafio diário #${n}\n⛰️ ${s.toLocaleString("pt-BR")} / 25.000 pts\n${e}\n`,
+ share_battle:(w,me,foe)=>`Peakle ⚔️ Duelo 1 x 1 — ${w}\n${me} vs ${foe}\n`,
+ version_err:"Sua versão do jogo é diferente da do adversário. Atualize a página!",
+},
+ja:{
+ tag:"世界の建築物の高さを当てよう。世界中のプレイヤーと対戦。", nick:"ニックネーム(2〜12文字)", daily:"📅 デイリーチャレンジ",
+ battle:"⚔️ 1対1バトル", practice:"🎯 練習モード", settings:"⚙️ 設定", quick:"⚡ クイックマッチ",
+ create:"🏠 ルームを作る", join:"参加", join_lbl:"コードで参加",
+ battle_note:"HP 1,000 でスタート。各ラウンドで、より近い答えを出した方が「2人の誤差の差(m)× 自分の倍率」だけ相手の HP を削ります。例:自分の誤差 20m、相手 70m → 相手 -50。倍率は2人とも ×1 から始まり、ラウンドに勝つたびに +0.5。最大15ラウンド。",
+ nick_chars:"使える文字は文字・数字・スペース・_・- だけです", nick_taken:"そのニックネームは使用中です", nick_free:"使えるニックネームです", nick_mine:"あなたのニックネーム",
+ recover_q:"あなたのものですか?", recover_btn:"復元", recover_ok:"ニックネームを復元しました!", recover_bad:"復元コードが違います", recover_ph:"復元コード",
+ offline:"サーバーに接続できません。通信環境を確認してください", code_title:"私の復元コード", copy_code2:"復元コードをコピー",
+ code_note:"別の端末やブラウザでこのニックネーム(と戦績)を使うにはこのコードが必要です。他の人に教えないでください。",
+ w:"勝", l:"敗", d:"分", daily_best:"デイリー最高", photo_src:"写真の出典(Wikimedia Commons)", daily_saved:"進行状況を保存しました。あとで続きから遊べます", rematch:"🔄 再戦", rematch_bot:"🔄 もう一度", rematch_wait:"相手の承諾を待っています…", rematch_req:"相手が再戦を希望しています!タップで開始", opp_gone:"相手が退出しました", attack:"攻撃", tie:"引き分けラウンド", photo_loading:"写真を読み込み中…", next_mult:"次のラウンドの倍率 —", foe:"相手", join_fail:"相手との接続が切れました。もう一度探しています…",
+ matching:"対戦相手を探しています…", matching_desc:"30秒以内に相手が見つからなければ練習ボットと対戦します",
+ room_wait:"友達を待っています…", room_desc:"このコードを友達に教えてください", copy_code:"コードをコピー", copied:"コピーしました!",
+ round:"ラウンド", answer:"実際の高さ", me:"自分", bot_prefix:"", submit_done:"送信しました!相手を待っています…",
+ timeout:"時間切れ!", damage:"ダメージ", pts:"点", win:"勝利!", lose:"敗北…", draw:"引き分け",
+ win_sub:"誰にも負けない高さの感覚!", lose_sub:"次はもっと高みを目指そう。", draw_sub:"完全に互角!",
+ opp_left:"相手が退出しました。不戦勝!", share:"結果をシェア", home:"ホーム", quit:"やめる",
+ daily_title:"デイリーチャレンジ", daily_max:"/ 25,000点", daily_next:"新しい問題は毎日 0時(UTC)に登場!",
+ daily_done:"今日のチャレンジはもう完了しています", lang:"言語", unit:"高さの単位", sound:"効果音", on:"オン", off:"オフ",
+ settings_note:"建築物は英語の正式名称で表示されます。",
+ nick_short:"ニックネームは2文字以上にしてください", nick_bad:"そのニックネームは使えません", no_room:"ルームが見つかりません",
+ room_full:"ルームは満員です", practice_end:"練習終了", rounds_played:"プレイしたラウンド", avg_pts:"平均点",
+ mts:"件の世界の建築物を収録", err:"誤差", guess_ph:"高さを入力", next_in:"まもなく次のラウンド…", start_in:"ゲームスタート!",
+ share_daily:(n,s,e)=>`Peakle デイリー #${n}\n⛰️ ${s.toLocaleString("ja")} / 25,000点\n${e}\n`,
+ share_battle:(w,me,foe)=>`Peakle ⚔️ 1対1バトル ${w}\n${me} vs ${foe}\n`,
+ version_err:"相手とゲームのバージョンが違います。ページを再読み込みしてください!",
+},
+de:{
+ tag:"Errate die Höhe der Bauwerke der Welt. Fordere alle heraus.", nick:"Spitzname (2–12 Zeichen)", daily:"📅 Tägliche Challenge",
+ battle:"⚔️ 1-gegen-1-Duell", practice:"🎯 Training", settings:"⚙️ Einstellungen", quick:"⚡ Schnelles Spiel",
+ create:"🏠 Raum erstellen", join:"Beitreten", join_lbl:"Mit Code beitreten",
+ battle_note:"Du startest mit 1.000 LP. In jeder Runde zieht, wer näher dran ist, (Differenz der beiden Fehler in Metern) × eigenen Multiplikator ab. Beispiel: dein Fehler 20 m, seiner 70 m → er verliert 50. Beide starten bei ×1; jede gewonnene Runde erhöht deinen Multiplikator um +0,5. Max. 15 Runden.",
+ nick_chars:"Nur Buchstaben, Zahlen, Leerzeichen, _ oder - erlaubt", nick_taken:"Dieser Spitzname ist vergeben", nick_free:"Spitzname verfügbar", nick_mine:"Dein Spitzname",
+ recover_q:"Gehört er dir?", recover_btn:"Wiederherstellen", recover_ok:"Spitzname wiederhergestellt!", recover_bad:"Falscher Wiederherstellungscode", recover_ph:"Wiederherstellungscode",
+ offline:"Keine Verbindung zum Server. Prüfe deine Internetverbindung", code_title:"Mein Wiederherstellungscode", copy_code2:"Code kopieren",
+ code_note:"Mit diesem Code kannst du deinen Spitznamen (und deine Statistik) auf einem anderen Gerät oder Browser nutzen. Gib ihn niemandem weiter.",
+ w:"S", l:"N", d:"U", daily_best:"Tagesbestwert", photo_src:"Bildquelle (Wikimedia Commons)", daily_saved:"Fortschritt gespeichert. Du kannst später weitermachen", rematch:"🔄 Revanche", rematch_bot:"🔄 Nochmal spielen", rematch_wait:"Warte auf den Gegner…", rematch_req:"Dein Gegner will eine Revanche! Tippe zum Starten", opp_gone:"Der Gegner hat das Spiel verlassen", attack:"Angriff", tie:"Unentschiedene Runde", photo_loading:"Bild wird geladen…", next_mult:"Multiplikatoren nächste Runde —", foe:"Gegner", join_fail:"Verbindung zum Gegner verloren. Suche erneut…",
+ matching:"Suche Gegner…", matching_desc:"Wenn in 30 s niemand beitritt, spielst du gegen einen Trainings-Bot",
+ room_wait:"Warte auf deinen Freund…", room_desc:"Teile diesen Code mit einem Freund", copy_code:"Code kopieren", copied:"Kopiert!",
+ round:"Runde", answer:"Tatsächliche Höhe", me:"Du", bot_prefix:"", submit_done:"Gesendet! Warte auf den Gegner…",
+ timeout:"Zeit abgelaufen!", damage:"Schaden", pts:"Pkt.", win:"Sieg!", lose:"Niederlage…", draw:"Unentschieden",
+ win_sub:"Ein unschlagbares Gespür für Höhe!", lose_sub:"Nächstes Mal höher hinaus.", draw_sub:"Absolut ebenbürtig!",
+ opp_left:"Der Gegner hat verlassen. Du gewinnst!", share:"Ergebnis teilen", home:"Start", quit:"Beenden",
+ daily_title:"Tägliche Challenge", daily_max:"/ 25.000 Pkt.", daily_next:"Neue Aufgabe um Mitternacht (UTC)!",
+ daily_done:"Du hast die heutige Challenge schon gespielt", lang:"Sprache", unit:"Höheneinheit", sound:"Ton", on:"An", off:"Aus",
+ settings_note:"Bauwerke werden mit ihrem offiziellen englischen Namen angezeigt.",
+ nick_short:"Der Spitzname braucht mindestens 2 Zeichen", nick_bad:"Dieser Spitzname ist nicht erlaubt", no_room:"Raum nicht gefunden",
+ room_full:"Der Raum ist voll", practice_end:"Training beendet", rounds_played:"Gespielte Runden", avg_pts:"Ø Punkte",
+ mts:"Bauwerke der Welt", err:"Fehler", guess_ph:"Höhe eingeben", next_in:"Gleich geht's weiter…", start_in:"Los geht's!",
+ share_daily:(n,s,e)=>`Peakle Tägliche Challenge #${n}\n⛰️ ${s.toLocaleString("de")} / 25.000 Pkt.\n${e}\n`,
+ share_battle:(w,me,foe)=>`Peakle ⚔️ 1-gegen-1-Duell — ${w}\n${me} vs ${foe}\n`,
+ version_err:"Deine Spielversion passt nicht zu der deines Gegners. Bitte Seite neu laden!",
+},
+fr:{
+ tag:"Devinez la hauteur des monuments du monde. Défiez tout le monde.", nick:"Pseudo (2 à 12 caractères)", daily:"📅 Défi du jour",
+ battle:"⚔️ Duel 1 contre 1", practice:"🎯 Entraînement", settings:"⚙️ Paramètres", quick:"⚡ Partie rapide",
+ create:"🏠 Créer un salon", join:"Rejoindre", join_lbl:"Rejoindre avec un code",
+ battle_note:"Vous commencez avec 1 000 PV. À chaque manche, le plus proche inflige (écart entre les deux erreurs en mètres) × son multiplicateur. Ex. : votre erreur 20 m, la sienne 70 m → il perd 50. Les deux commencent à ×1 ; chaque manche gagnée ajoute +0,5 à votre multiplicateur. 15 manches max.",
+ nick_chars:"Lettres, chiffres, espaces, _ ou - uniquement", nick_taken:"Ce pseudo est déjà pris", nick_free:"Pseudo disponible", nick_mine:"Votre pseudo",
+ recover_q:"C'est le vôtre ?", recover_btn:"Récupérer", recover_ok:"Pseudo récupéré !", recover_bad:"Code de récupération incorrect", recover_ph:"Code de récupération",
+ offline:"Impossible de joindre le serveur. Vérifiez votre connexion", code_title:"Mon code de récupération", copy_code2:"Copier le code",
+ code_note:"Ce code permet d'utiliser ce pseudo (et ses statistiques) sur un autre appareil ou navigateur. Ne le partagez pas.",
+ w:"V", l:"D", d:"N", daily_best:"Meilleur défi", photo_src:"Source de la photo (Wikimedia Commons)", daily_saved:"Progression enregistrée. Vous pourrez continuer plus tard", rematch:"🔄 Revanche", rematch_bot:"🔄 Rejouer", rematch_wait:"En attente de l'adversaire…", rematch_req:"Votre adversaire veut une revanche ! Touchez pour commencer", opp_gone:"L'adversaire est parti", attack:"attaque", tie:"Manche nulle", photo_loading:"Chargement de la photo…", next_mult:"Multiplicateurs de la prochaine manche —", foe:"Adversaire", join_fail:"L'adversaire s'est déconnecté. Nouvelle recherche…",
+ matching:"Recherche d'un adversaire…", matching_desc:"Si personne ne rejoint en 30 s, vous affronterez un bot d'entraînement",
+ room_wait:"En attente de votre ami…", room_desc:"Partagez ce code avec un ami", copy_code:"Copier le code", copied:"Copié !",
+ round:"Manche", answer:"Hauteur réelle", me:"Vous", bot_prefix:"", submit_done:"Envoyé ! En attente de l'adversaire…",
+ timeout:"Temps écoulé !", damage:"dégâts", pts:"pts", win:"Victoire !", lose:"Défaite…", draw:"Match nul",
+ win_sub:"Un sens de la hauteur imbattable !", lose_sub:"Visez plus haut la prochaine fois.", draw_sub:"Parfaitement à égalité !",
+ opp_left:"L'adversaire est parti. Vous gagnez !", share:"Partager le résultat", home:"Accueil", quit:"Quitter",
+ daily_title:"Défi du jour", daily_max:"/ 25 000 pts", daily_next:"Nouveau défi à minuit (UTC) !",
+ daily_done:"Vous avez déjà joué le défi du jour", lang:"Langue", unit:"Unité de hauteur", sound:"Son", on:"Oui", off:"Non",
+ settings_note:"Les monuments sont affichés avec leur nom officiel en anglais.",
+ nick_short:"Le pseudo doit contenir au moins 2 caractères", nick_bad:"Ce pseudo n'est pas autorisé", no_room:"Salon introuvable",
+ room_full:"Le salon est complet", practice_end:"Fin de l'entraînement", rounds_played:"Manches jouées", avg_pts:"Moyenne",
+ mts:"monuments du monde", err:"erreur", guess_ph:"Entrez la hauteur", next_in:"Prochaine manche dans un instant…", start_in:"C'est parti !",
+ share_daily:(n,s,e)=>`Peakle Défi du jour #${n}\n⛰️ ${s.toLocaleString("fr")} / 25 000 pts\n${e}\n`,
+ share_battle:(w,me,foe)=>`Peakle ⚔️ Duel 1 contre 1 — ${w}\n${me} vs ${foe}\n`,
+ version_err:"Votre version du jeu diffère de celle de l'adversaire. Rechargez la page !",
+}
+};
+const LANGS=["ko","en","es","pt","ja","de","fr"];
+function detectLang(){
+  const saved=localStorage.getItem("pk_lang");
+  if(saved && STR[saved]) return saved;
+  const prefs=(navigator.languages&&navigator.languages.length?navigator.languages:[navigator.language||"en"]);
+  for(const p of prefs){ const b=String(p).toLowerCase().split("-")[0]; if(STR[b]) return b; }
+  return "en";
+}
+let L = detectLang();
+const t = k => (STR[L][k] ?? STR.en[k]);
 
 /* ================= 상태/설정 ================= */
 const $ = id => document.getElementById(id);
@@ -538,7 +677,13 @@ $("nick").value = localStorage.getItem("pk_nick") || "";
 function flagURL(iso){ return "https://flagcdn.com/w160/"+iso.toLowerCase()+".png"; }
 function mtName(m){ return (L==="ko" && m[3]) ? m[3] : m[0]; }
 
-const CATS={1:{ko:"건물",en:"Building",ic:"🏢"},2:{ko:"타워",en:"Tower",ic:"🗼"},3:{ko:"다리",en:"Bridge",ic:"🌉"},4:{ko:"기념물·동상",en:"Monument / Statue",ic:"🗽"},5:{ko:"종교 건축",en:"Religious",ic:"⛪"},6:{ko:"경기장·구조물",en:"Stadium / Structure",ic:"🏟"}};
+const CATS={
+ 1:{ko:"건물",en:"Building",es:"Edificio",pt:"Edifício",ja:"ビル",de:"Gebäude",fr:"Immeuble",ic:"🏢"},
+ 2:{ko:"타워",en:"Tower",es:"Torre",pt:"Torre",ja:"タワー",de:"Turm",fr:"Tour",ic:"🗼"},
+ 3:{ko:"다리",en:"Bridge",es:"Puente",pt:"Ponte",ja:"橋",de:"Brücke",fr:"Pont",ic:"🌉"},
+ 4:{ko:"기념물·동상",en:"Monument / Statue",es:"Monumento / Estatua",pt:"Monumento / Estátua",ja:"記念碑・像",de:"Denkmal / Statue",fr:"Monument / Statue",ic:"🗽"},
+ 5:{ko:"종교 건축",en:"Religious",es:"Edificio religioso",pt:"Edifício religioso",ja:"宗教建築",de:"Sakralbau",fr:"Édifice religieux",ic:"⛪"},
+ 6:{ko:"경기장·구조물",en:"Stadium / Structure",es:"Estadio / Estructura",pt:"Estádio / Estrutura",ja:"競技場・構造物",de:"Stadion / Bauwerk",fr:"Stade / Structure",ic:"🏟"}};
 function toUnit(mm){ return unit==="m" ? mm : Math.round(mm*3.28084); }
 function fromUnit(v){ return unit==="m" ? v : Math.round(v/3.28084); }
 function fmtH(mm){ return toUnit(mm).toLocaleString() + " " + unit; }
@@ -548,7 +693,7 @@ function fmtH(mm){ return toUnit(mm).toLocaleString() + " " + unit; }
    라운드 점수 0~5000. 오직 "실제 높이와 몇 m 차이 나는가"로만 계산.
    → 같은 문제에서는 더 가깝게 맞힌 사람이 항상 더 높은 점수 (높게/낮게 찍은 방향은 무관)
    오차 2% 이내 만점, 10%≈4,300점, 30%≈3,200점, 50%≈2,400점 */
-const MAXPTS=5000, START_HP=1000, APP_VER=9;
+const MAXPTS=5000, START_HP=1000, APP_VER=10;
 function calcScore(guessM, actualM){
   if(guessM==null||guessM<=0) return 0;
   const r=Math.abs(guessM-actualM)/actualM;   // 실제 높이 대비 차이(m)의 비율
@@ -714,7 +859,7 @@ function applyI18n(){
   $("guess").placeholder=t("guess_ph"); $("unitlbl").textContent=unit;
   $("b-recover").textContent=t("recover_btn"); $("recode").placeholder=t("recover_ph"); renderStats();
   $("mtcount").textContent="🏔 "+MT.length.toLocaleString()+" "+t("mts");
-  $("langsel").value=L;
+  $("langsel").value=L; document.documentElement.lang = L==="pt" ? "pt-BR" : L;
   $("u-m").classList.toggle("on",unit==="m"); $("u-ft").classList.toggle("on",unit==="ft");
   $("snd-on").classList.toggle("on",sound); $("snd-off").classList.toggle("on",!sound);
 }
@@ -749,7 +894,7 @@ function showMountain(m){
   $("mtflag").src = flagURL(m[1]);
   $("mtname").textContent = mtName(m);
   const c=CATS[m[4]||0];
-  $("mtsub").textContent = c.ic+" "+(L==="ko"?c.ko:c.en) + ((L==="ko"&&m[3]) ? " · "+m[0] : "");
+  $("mtsub").textContent = c.ic+" "+(c[L]||c.en) + ((L==="ko"&&m[3]) ? " · "+m[0] : "");
   $("guess").value=""; $("guess").disabled=false; $("b-submit").disabled=false;
   $("waitmsg").textContent="";
   $("guessarea").style.display="block"; $("revealarea").style.display="none";
@@ -915,7 +1060,8 @@ function cmpBattle(who,guessM,actual,taken,dealt,usedMult){
 /* --- 봇 대결 (오프라인) --- */
 function startBotGame(){
   const myNick=localStorage.getItem("pk_nick")||nickname();
-  const foe=BOTNAMES[Math.floor(Math.random()*BOTNAMES.length)];
+  const pool = L==="ko" ? BOTNAMES : BOTNAMES.filter(n=>!/[가-힣]/.test(n)).concat(["SkylineFox","TowerOwl","SpireHunter","Rascacielos","Arranha-Céu","TurmFalke","TourEiffelFan","Tokyo_Tower"]);
+  const foe=pool[Math.floor(Math.random()*pool.length)];
   G={mode:"bot",fb:false,round:1,myHP:START_HP,foeHP:START_HP,myMult:1,foeMult:1,foeNick:foe,
      mts:pickBalancedSeeded(Math.floor(Math.random()*1e9),15)};
   preloadPhotos(G.mts.map(i=>MT[i]));
@@ -1346,7 +1492,7 @@ function submitGuess(){
   else if(G.mode==="bot")botSubmit(raw);
   else if(G.mode==="net")netSubmit(raw);
 }
-$("langsel").onchange=e=>{L=e.target.value;localStorage.setItem("pk_lang",L);applyI18n();};
+$("langsel").onchange=e=>{ if(!STR[e.target.value]) return; L=e.target.value;localStorage.setItem("pk_lang",L);applyI18n();};
 $("u-m").onclick=()=>{unit="m";localStorage.setItem("pk_unit","m");applyI18n();};
 $("u-ft").onclick=()=>{unit="ft";localStorage.setItem("pk_unit","ft");applyI18n();};
 $("snd-on").onclick=()=>{sound=true;localStorage.setItem("pk_sound","1");applyI18n();beep([659]);};
