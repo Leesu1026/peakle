@@ -9,7 +9,8 @@
         ".validate": "newData.hasChildren(['owner', 'code', 'nick']) && newData.child('owner').val() === auth.uid",
         "owner": { ".read": true, ".validate": "newData.isString()" },
         "nick": { ".read": true, ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 12" },
-        "code": { ".validate": "newData.isString() && newData.val().matches(/^[A-Z0-9]{8}$/)" },
+        "code": { ".read": "auth != null && data.parent().child('owner').val() === auth.uid", ".validate": "newData.isString() && newData.val().matches(/^[A-Z0-9]{8}$/)" },
+        "pw": { ".read": true, ".validate": "newData.isBoolean()" },
         "$other": { ".validate": false }
       }
     },

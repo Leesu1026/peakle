@@ -341,7 +341,7 @@ select option{color:#000}
 /* ================= Firebase ================= */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, set, get, update, remove, onValue, off, onDisconnect, runTransaction,
-         increment, query, orderByChild, endAt, limitToFirst }
+         increment, query, orderByChild, endAt, limitToFirst, goOffline, goOnline }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, EmailAuthProvider,
   linkWithCredential, reauthenticateWithCredential, updatePassword, signOut }
@@ -358,6 +358,22 @@ const firebaseConfig = {
 };
 const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
+/* ===== 서버 연결 절약 =====
+   Firebase 무료 요금제는 동시 연결 100개가 한도라서, 페이지를 연 모든 사람이 계속 연결돼 있으면 금방 막힘.
+   → 처음엔 연결하지 않고, 서버가 필요할 때만 연결(wake). 30초 동안 서버를 안 쓰면 자동으로 끊음.
+     대결·매칭 중(G.fb)에는 끊지 않음. */
+goOffline(db);
+let netAwake = false, netIdleT = null, dbConnected = false;
+const NET_IDLE = 30000;
+function wake(){
+  if(!netAwake){ netAwake = true; goOnline(db); }
+  clearTimeout(netIdleT); netIdleT = setTimeout(netNap, NET_IDLE);
+}
+function netNap(){
+  if(typeof G !== "undefined" && G && G.fb){ netIdleT = setTimeout(netNap, NET_IDLE); return; }   // 대결 중엔 유지
+  netAwake = false; goOffline(db);
+}
+onValue(ref(db, ".info/connected"), s => { dbConnected = s.val() === true; });
 let serverOffset = 0;
 onValue(ref(db, ".info/serverTimeOffset"), s => { serverOffset = s.val() || 0; });
 const now = () => Date.now() + serverOffset;
@@ -377,7 +393,10 @@ const authReady = new Promise(res=>{ onAuthStateChanged(auth,u=>{
 const online = async () => {
   if(!await Promise.race([authReady, sleep(7000).then(()=>false)])) return false;
   for(let i=0;i<70 && !AUID;i++) await sleep(100);   // 로그아웃 직후 새 익명 계정이 생길 때까지 잠깐 대기
-  return !!AUID;
+  if(!AUID) return false;
+  wake();                                            // 서버 연결 (이미 연결돼 있으면 30초 연장)
+  for(let i=0;i<80 && !dbConnected;i++) await sleep(100);
+  return dbConnected;
 };
 /* 비밀번호 계정: 플레이어에게는 이메일을 묻지 않고, 계정 고유 ID로 만든 가짜 주소를 화면 뒤에서 사용 */
 const emailOf = id => String(id).toLowerCase()+"@peakle.game";
@@ -773,11 +792,11 @@ function renderStats(){
   el.textContent=parts.join("  ·  ");
 }
 async function recordBattle(kind){
-  if(!myNickKey || !AUID) return;
+  if(!myNickKey || !await online()) return;
   try{ await update(ref(db,`stats/${myNickKey}`),{games:increment(1),[kind]:increment(1)}); loadStats(); }catch(e){}
 }
 async function recordDaily(dn,res){
-  if(!myNickKey || !AUID) return;
+  if(!myNickKey || !await online()) return;
   try{
     await set(ref(db,`stats/${myNickKey}/daily/${dn}`),{s:res.s,p:res.p.join(",")});
     if(!(myStats&&myStats.best>=res.s)) await update(ref(db,`stats/${myNickKey}`),{best:res.s});
@@ -810,7 +829,7 @@ function fmtH(mm){ return toUnit(mm).toLocaleString() + " " + unit; }
    라운드 점수 0~5000. 오직 "실제 높이와 몇 m 차이 나는가"로만 계산.
    → 같은 문제에서는 더 가깝게 맞힌 사람이 항상 더 높은 점수 (높게/낮게 찍은 방향은 무관)
    오차 2% 이내 만점, 10%≈4,300점, 30%≈3,200점, 50%≈2,400점 */
-const MAXPTS=5000, START_HP=1000, APP_VER=11;
+const MAXPTS=5000, START_HP=1000, APP_VER=12;
 function calcScore(guessM, actualM){
   if(guessM==null||guessM<=0) return 0;
   const r=Math.abs(guessM-actualM)/actualM;   // 실제 높이 대비 차이(m)의 비율
@@ -992,6 +1011,7 @@ function cleanupGame(){
   unsub.forEach(u=>u()); unsub=[];
   const g=G; G=null;
   if(g && g.fb){
+    wake();   // 방 정리 기록이 끝날 때까지 연결 유지
     clearTimeout(g.joinTimer);
     if(g.slotMine){ // 대기 슬롯이 아직 내 것이면 비우기
       onDisconnect(SLOT()).cancel().catch(()=>{});
@@ -1001,7 +1021,10 @@ function cleanupGame(){
       onDisconnect(ref(db,`rooms/${g.roomId}/players/${uid}/left`)).cancel().catch(()=>{});
       if(g.iAmHost && g.phase==="lobby") remove(g.roomRef).catch(()=>{});
       else if(g.phase==="end" && (g.foeLeft||!g.foeUid)) remove(g.roomRef).catch(()=>{}); // 마지막으로 나가는 사람이 방 정리
-      else update(ref(db,`rooms/${g.roomId}/players/${uid}`),{left:true}).catch(()=>{});
+      else update(ref(db,`rooms/${g.roomId}/players/${uid}`),{left:true})
+        .then(()=>get(ref(db,`rooms/${g.roomId}/players`)))   // 동시에 나간 경우: 모두 나갔으면 방 정리
+        .then(s=>{ const ps=Object.values(s.val()||{}); if(ps.length && ps.every(p=>p.left)) return remove(g.roomRef); })
+        .catch(()=>{});
     }
   }
 }
