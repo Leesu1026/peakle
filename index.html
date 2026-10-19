@@ -359,13 +359,36 @@ select option{color:#000}
 <script src="photos.js" onerror="window.PHOTOS={};window.CREDITS={}"></script>
 <script type="module">
 /* ================= Firebase ================= */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, set, get, update, remove, onValue, off, onDisconnect, runTransaction,
-         increment, query, orderByChild, endAt, limitToFirst, limitToLast, goOffline, goOnline }
-  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-import { getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, EmailAuthProvider,
-  linkWithCredential, reauthenticateWithCredential, updatePassword, signOut }
-  from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+/* ===== Firebase 불러오기 =====
+   Firebase 서버가 막힌 곳(일부 국가·학교·회사망·광고 차단기)에서도 게임이 멈추지 않게,
+   불러오기에 실패하면 '오프라인 모드'로 시작 → 연습·데일리는 그대로 플레이 가능, 대결·기록 저장만 안 됨. */
+const FB_NAMES = ["initializeApp","getDatabase","ref","set","get","update","remove","onValue","off","onDisconnect","runTransaction",
+  "increment","query","orderByChild","endAt","limitToFirst","limitToLast","goOffline","goOnline",
+  "getAuth","signInAnonymously","onAuthStateChanged","signInWithEmailAndPassword","EmailAuthProvider",
+  "linkWithCredential","reauthenticateWithCredential","updatePassword","signOut"];
+const FB_OFF = (()=>{ const no=()=>Promise.reject(new Error("offline")), o={};
+  FB_NAMES.forEach(n=>o[n]=no);
+  Object.assign(o,{ initializeApp:()=>({}), getDatabase:()=>({}), ref:()=>({}), query:()=>({}), orderByChild:()=>({}), endAt:()=>({}),
+    limitToFirst:()=>({}), limitToLast:()=>({}), increment:()=>0, onValue:()=>()=>{}, off:()=>{}, goOffline:()=>{}, goOnline:()=>{},
+    onDisconnect:()=>({set:no,remove:no,cancel:no}), getAuth:()=>({currentUser:null}), onAuthStateChanged:()=>()=>{},
+    EmailAuthProvider:{credential:()=>({})} });
+  return o; })();
+/* FIREBASE-LOAD-START */
+let FBM = null;
+try{
+  const base="https://www.gstatic.com/firebasejs/10.12.2/";
+  const mods = await Promise.race([
+    Promise.all(["firebase-app","firebase-database","firebase-auth"].map(n=>import(base+n+".js"))),
+    new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),10000))
+  ]);
+  FBM = Object.assign({}, ...mods);
+}catch(e){ console.warn("Firebase를 불러오지 못해 오프라인 모드로 시작해요", e); }
+/* FIREBASE-LOAD-END */
+const FBX = FBM || FB_OFF;
+const { initializeApp, getDatabase, ref, set, get, update, remove, onValue, off, onDisconnect, runTransaction,
+  increment, query, orderByChild, endAt, limitToFirst, limitToLast, goOffline, goOnline,
+  getAuth, signInAnonymously, onAuthStateChanged, signInWithEmailAndPassword, EmailAuthProvider,
+  linkWithCredential, reauthenticateWithCredential, updatePassword, signOut } = FBX;
 
 const firebaseConfig = {
   apiKey: "AIzaSyDvybMXX5DRJ3DeJDmzJevtHTxetIiG4fg",
