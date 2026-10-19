@@ -154,8 +154,22 @@ def main():
     for f in os.listdir(IMG_DIR):
         if "img/" + f not in keep:
             os.remove(os.path.join(IMG_DIR, f))
+    # 국기 그림도 사이트에 올려 둠 (flagcdn 이 막혀도 표시되게)
+    flag_dir = os.path.join(ROOT, "flags")
+    os.makedirs(flag_dir, exist_ok=True)
+    flags_ok = 0
+    for iso in sorted({m[1].lower() for m in mts}):
+        fp_ = os.path.join(flag_dir, iso + ".png")
+        if not os.path.exists(fp_):
+            r = get(f"https://flagcdn.com/w160/{iso}.png")
+            if r:
+                open(fp_, "wb").write(r.content)
+                time.sleep(0.2)
+        flags_ok += os.path.exists(fp_)
+    print(f"국기 {flags_ok}개")
     with open(OUT_JS, "w", encoding="utf-8") as fp:
         fp.write("/* 자동 생성 파일 (tools/fetch_photos.py) — 직접 수정하지 마세요 */\n")
+        fp.write("window.FLAGS_LOCAL=" + ("true" if flags_ok else "false") + ";\n")
         fp.write("window.PHOTOS=" + json.dumps(photos, ensure_ascii=False, separators=(",", ":"), sort_keys=True) + ";\n")
         fp.write("window.CREDITS=" + json.dumps({k: credits[k] for k in sorted(credits) if k in set(files)},
                                                  ensure_ascii=False, separators=(",", ":")) + ";\n")

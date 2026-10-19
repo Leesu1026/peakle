@@ -26,9 +26,10 @@ with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
         p = os.path.join(ROOT, f)
         if os.path.exists(p):
             z.write(p, f)
-    img = os.path.join(ROOT, "img")
-    if os.path.isdir(img):
-        for f in sorted(os.listdir(img)):
-            z.write(os.path.join(img, f), "img/" + f)
+    for d in ("img", "flags"):
+        dp = os.path.join(ROOT, d)
+        if os.path.isdir(dp):
+            for f in sorted(os.listdir(dp)):
+                z.write(os.path.join(dp, f), d + "/" + f)
 n = len(zipfile.ZipFile(out).namelist())
 print(f"{out}  ({os.path.getsize(out) / 1e6:.1f} MB, 파일 {n}개)")

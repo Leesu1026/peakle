@@ -1054,7 +1054,8 @@ async function serverDaily(dn){
 }
 $("nick").value = localStorage.getItem("pk_nick") || "";
 
-function flagURL(iso){ return "https://flagcdn.com/w160/"+iso.toLowerCase()+".png"; }
+/* 국기: 사이트에 올려 둔 그림(flags/) 먼저, 없으면 flagcdn */
+function flagURL(iso){ const c=iso.toLowerCase(); return (window.FLAGS_LOCAL ? "flags/" : "https://flagcdn.com/w160/")+c+".png"; }
 function mtName(m){ return (L==="ko" && m[3]) ? m[3] : m[0]; }
 
 const CATS={
@@ -1288,6 +1289,7 @@ function cleanupGame(){
 function showMountain(m){
   photoToken++; curPhotoFile=null; $("srclink").style.display="none";
   const shown=showPhoto(m,photoToken);
+  $("mtflag").onerror=function(){ this.onerror=null; this.src="https://flagcdn.com/w160/"+m[1].toLowerCase()+".png"; };
   $("mtflag").src = flagURL(m[1]);
   $("mtname").textContent = mtName(m);
   const c=CATS[m[4]||0];

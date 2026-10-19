@@ -34,7 +34,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add img photos.js || true
+          git add img flags photos.js || true
           if git diff --cached --quiet; then echo "변경 없음"; exit 0; fi
           git commit -m "사진·출처 자동 갱신"
           git push
