@@ -182,7 +182,17 @@ def build_base(photo_img, lang, cat_country):
     box_w, box_h, top = 1000, 1000, 400
     ph = photo_img.convert("RGB")
     sc = min(box_w / ph.width, box_h / ph.height)
-    ph = ph.resize((round(ph.width * sc), round(ph.height * sc)), Image.LANCZOS)
+    fit_w, fit_h = round(ph.width * sc), round(ph.height * sc)
+    if fit_w < box_w * 0.8:
+        # 세로로 긴 사진: 게임처럼 같은 사진을 흐리게 깔아 빈 곳을 채우고, 원본은 잘리지 않게 가운데에 전체 표시
+        cov = max(box_w / ph.width, box_h / ph.height)
+        bgp = ph.resize((round(ph.width * cov), round(ph.height * cov)), Image.LANCZOS)
+        l, t2 = (bgp.width - box_w) // 2, (bgp.height - box_h) // 2
+        bgp = bgp.crop((l, t2, l + box_w, t2 + box_h)).filter(ImageFilter.GaussianBlur(28))
+        bgp = Image.blend(bgp, Image.new("RGB", bgp.size, BG0), 0.35)
+        bgp = rounded(bgp, 28)
+        base.paste(bgp, ((W - box_w) // 2, top), bgp)
+    ph = ph.resize((fit_w, fit_h), Image.LANCZOS)
     ph = rounded(ph, 28)
     px, py = (W - ph.width) // 2, top + (box_h - ph.height) // 2
     base.paste(ph, (px, py), ph)
